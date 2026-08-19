@@ -25,6 +25,12 @@ import {
   getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import { 
+  generateSaltedHashToken, 
+  verifyAndDecodeSaltedHash, 
+  isSaltedHashToken 
+} from "./crypto-salt.js";
+
 // ==========================================
 // 1. FIREBASE AUTHENTICATION & FIRESTORE CONFIGURATION
 // ==========================================
@@ -930,9 +936,24 @@ function initCandidateLoginModal() {
 
   if (btnCopyCred) {
     btnCopyCred.addEventListener("click", () => {
-      const url = `https://coralgenz.co.in/verify?id=${certIdVal?.textContent || "CG-MSME-2026"}`;
+      const name = certCandidateName?.textContent || "Candidate";
+      const certId = certIdVal?.textContent || "CG-MSME-2026-CERT-8842";
+      const saltedToken = generateSaltedHashToken({
+        name: name,
+        candidateName: name,
+        email: "candidate@coralgenz.co.in",
+        track: "Specialized Engineering Internship",
+        serialNumber: certId,
+        certId: certId,
+        grade: "Grade A+ (Score: 99/100) • Outstanding",
+        duration: "8-12 Weeks • 100% Remote",
+        issueDate: "August 2026",
+        status: "100% Completed • MSME Verified Deliverables",
+        msmeRegNo: "UDYAM-TN-03-0189422"
+      });
+      const url = `https://certifications-coralgenz.vercel.app/?v=${encodeURIComponent(saltedToken)}`;
       navigator.clipboard.writeText(url).then(() => {
-        showToast("Credential Verification Link copied to clipboard! 🔗");
+        showToast("Official Salted Credential Verification Link copied! 🔗");
       }).catch(() => {
         showToast(`Verification Link: ${url}`);
       });
@@ -941,7 +962,7 @@ function initCandidateLoginModal() {
 }
 
 // ==========================================
-// 12. CERTIFICATE VERIFICATION PORTAL (FIREBASE DATABASE & QR CODE)
+// 12. CERTIFICATE VERIFICATION PORTAL (CRYPTOGRAPHIC SALTED HASH DECODER)
 // ==========================================
 function initCertificateVerificationModal() {
   const verifyModal = document.getElementById("verify-modal");
@@ -955,9 +976,14 @@ function initCertificateVerificationModal() {
   // Search Form
   const searchForm = document.getElementById("verify-search-form");
   const searchInput = document.getElementById("verify-query-input");
+  // Loading & Result Elements
   const loadingSpinner = document.getElementById("verify-loading-spinner");
   const statusBox = document.getElementById("verify-status-box");
   const resultCard = document.getElementById("verify-result-card");
+  const unverifiedCard = document.getElementById("verify-unverified-card");
+  const unverifiedMsgBody = document.getElementById("unverified-msg-body");
+  const formatBlockedCard = document.getElementById("verify-format-blocked-card");
+  const blockedMsgBody = document.getElementById("blocked-msg-body");
 
   // Result Elements
   const resAvatar = document.getElementById("res-candidate-avatar");
@@ -967,6 +993,8 @@ function initCertificateVerificationModal() {
   const resCertId = document.getElementById("res-cert-id");
   const resGrade = document.getElementById("res-grade-score");
   const resStatus = document.getElementById("res-cohort-status");
+  const resSaltVal = document.getElementById("res-salt-val");
+  const resCryptoStatus = document.getElementById("res-crypto-status");
   const resTimestamp = document.getElementById("res-timestamp");
   const btnPrintCert = document.getElementById("btn-print-verified-cert");
   const btnCopyCertUrl = document.getElementById("btn-copy-verified-url");
@@ -978,6 +1006,10 @@ function initCertificateVerificationModal() {
   const qrPlaceholder = document.getElementById("qr-scanner-placeholder");
   const qrFeedback = document.getElementById("qr-scan-feedback");
   let videoStream = null;
+  let animationFrameId = null;
+  let scanCanvas = null;
+  let scanCtx = null;
+  let lastVerifiedToken = "";
 
   if (!verifyModal) return;
 
@@ -987,6 +1019,8 @@ function initCertificateVerificationModal() {
     document.body.style.overflow = "hidden";
     if (statusBox) statusBox.style.display = "none";
     if (resultCard) resultCard.style.display = "none";
+    if (unverifiedCard) unverifiedCard.style.display = "none";
+    if (formatBlockedCard) formatBlockedCard.style.display = "none";
     if (searchInput) searchInput.focus();
   }
 
@@ -1050,119 +1084,122 @@ function initCertificateVerificationModal() {
     });
   });
 
-  // Simple string hash helper for deterministic demo fallback IDs
-  function hashStr(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return Math.abs(hash);
+  // Escape HTML helper
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, s => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[s]));
   }
 
-  // Database verification lookup
+  // Parse payload (preserves full salted token from URLs or raw input)
+  function extractSaltedPayload(rawPayload) {
+    let clean = (rawPayload || "").trim();
+    try {
+      if (clean.startsWith("http://") || clean.startsWith("https://")) {
+        const urlObj = new URL(clean);
+        clean = urlObj.searchParams.get("v") || 
+                urlObj.searchParams.get("token") || 
+                urlObj.searchParams.get("id") || 
+                urlObj.searchParams.get("verify") || 
+                clean;
+      }
+    } catch (e) {}
+    return clean;
+  }
+
+  // Cryptographic Salt & Anti-Tamper Verification Lookup
   async function performVerification(queryStr) {
-    const rawQuery = (queryStr || "").trim();
-    if (!rawQuery) {
-      showToast("Please enter an email address or certificate serial ID.");
+    const rawInput = (queryStr || "").trim();
+    if (!rawInput) {
+      showToast("Please enter a cryptographic salted token or scan a QR code.");
       return;
     }
 
     if (loadingSpinner) loadingSpinner.style.display = "flex";
     if (statusBox) statusBox.style.display = "none";
     if (resultCard) resultCard.style.display = "none";
+    if (unverifiedCard) unverifiedCard.style.display = "none";
+    if (formatBlockedCard) formatBlockedCard.style.display = "none";
 
-    const lowerQuery = rawQuery.toLowerCase();
-    let candidateData = null;
+    // Simulate high-security cryptographic handshake & signature check
+    await new Promise(r => setTimeout(r, 200));
 
-    try {
-      // 1. Query Firebase Firestore for candidate certificates
-      const certsRef = collection(db, "certificates");
-      
-      // Query by candidate email
-      const qEmail = query(certsRef, where("email", "==", lowerQuery));
-      const snapEmail = await getDocs(qEmail);
+    // Decode and verify the cryptographic salted hash
+    const verifiedResult = verifyAndDecodeSaltedHash(rawInput);
 
-      if (!snapEmail.empty) {
-        candidateData = snapEmail.docs[0].data();
-      } else {
-        // Query by serialNumber
-        const qSerial = query(certsRef, where("serialNumber", "==", rawQuery));
-        const snapSerial = await getDocs(qSerial);
+    if (loadingSpinner) loadingSpinner.style.display = "none";
 
-        if (!snapSerial.empty) {
-          candidateData = snapSerial.docs[0].data();
-        } else {
-          // Query by certId
-          const qCertId = query(certsRef, where("certId", "==", rawQuery));
-          const snapCertId = await getDocs(qCertId);
-          if (!snapCertId.empty) {
-            candidateData = snapCertId.docs[0].data();
-          }
+    // CASE 1: Normal / Un-salted Format Entered -> STRICTLY BLOCKED!
+    if (!verifiedResult.valid && verifiedResult.isNormalFormat) {
+      if (formatBlockedCard) {
+        if (blockedMsgBody) {
+          blockedMsgBody.innerHTML = `The query <strong>"${escapeHtml(rawInput)}"</strong> is in a normal plaintext format (raw serial number or unhashed email).<br><br>To prevent candidate credential forgery and protect data integrity, <strong>our verification gateway strictly requires an authentic Cryptographic Salted Hash QR Code</strong>.`;
         }
+        formatBlockedCard.style.display = "block";
+        formatBlockedCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
-    } catch (err) {
-      console.info("Firestore live check completed. Proceeding with MSME verification engine.");
+      showToast("⛔ Normal un-salted format blocked. Salted QR token required.");
+      return;
     }
 
-    // 2. Intelligent MSME Verification Resolution
-    // If no custom documents are seeded yet, validates candidate identity deterministically
-    if (!candidateData) {
-      const isEmail = lowerQuery.includes("@");
-      const namePart = isEmail 
-        ? lowerQuery.split("@")[0].replace(/[._0-9-]/g, " ") 
-        : "Candidate " + rawQuery.replace(/[^0-9]/g, "").slice(-4);
-      
-      const formattedName = namePart
-        .split(" ")
-        .filter(Boolean)
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ") || "Verified Candidate";
-
-      const certSerial = isEmail 
-        ? `CG-MSME-2026-CERT-${hashStr(lowerQuery).toString().padStart(5, "0").slice(0, 5)}`
-        : rawQuery.toUpperCase();
-
-      candidateData = {
-        name: formattedName,
-        email: isEmail ? lowerQuery : `${rawQuery.toLowerCase()}@candidate.coralgenz.co.in`,
-        track: "Full Stack Web Development & Modern Architecture",
-        serialNumber: certSerial,
-        grade: "Grade A+ (Score: 98.5%) • Outstanding Performance",
-        status: "100% Completed • MSME Verified Deliverables",
-        issueDate: "Official Issue Date: 2026",
-        verifiedTimestamp: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-      };
+    // CASE 2: Signature Mismatch / Tampered Data Detected
+    if (!verifiedResult.valid && verifiedResult.error === "TAMPERED_PAYLOAD") {
+      if (unverifiedCard) {
+        if (unverifiedMsgBody) {
+          unverifiedMsgBody.innerHTML = `⚠️ <strong>Cryptographic Tamper Alert:</strong> The HMAC-SHA256 signature for this QR code did not match the expected salted hash envelope. The candidate information inside this QR code has been altered, forged, or corrupted.`;
+        }
+        unverifiedCard.style.display = "block";
+        unverifiedCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      showToast("⚠️ Security alert: Tampered QR code detected!");
+      return;
     }
 
-    setTimeout(() => {
-      if (loadingSpinner) loadingSpinner.style.display = "none";
-
-      if (candidateData) {
-        const initials = candidateData.name
-          .split(" ")
-          .map(w => w.charAt(0))
-          .join("")
-          .substring(0, 2)
-          .toUpperCase() || "CG";
-
-        if (resAvatar) resAvatar.textContent = initials;
-        if (resName) resName.textContent = candidateData.name || candidateData.candidateName || "Candidate";
-        if (resEmail) resEmail.textContent = candidateData.email || lowerQuery;
-        if (resTrack) resTrack.textContent = candidateData.track || "Full Stack Web Development";
-        if (resCertId) resCertId.textContent = candidateData.serialNumber || candidateData.certId || "CG-MSME-2026-CERT-8842";
-        if (resGrade) resGrade.textContent = candidateData.grade || "Grade A+ (Score: 98.5%) • Outstanding";
-        if (resStatus) resStatus.textContent = candidateData.status || "100% Completed • 8-12 Weeks (Remote)";
-        if (resTimestamp) resTimestamp.textContent = `Verified on ${candidateData.verifiedTimestamp || "Active & Authentic"}`;
-
-        if (resultCard) {
-          resultCard.style.display = "block";
-          resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // CASE 3: Invalid Structure or Other Error
+    if (!verifiedResult.valid) {
+      if (unverifiedCard) {
+        if (unverifiedMsgBody) {
+          unverifiedMsgBody.innerHTML = escapeHtml(verifiedResult.message || "Invalid cryptographic token format.");
         }
-
-        showToast(`✅ Certificate Verified for ${candidateData.name}!`);
+        unverifiedCard.style.display = "block";
+        unverifiedCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
-    }, 600);
+      showToast("⚠️ Invalid QR verification token.");
+      return;
+    }
+
+    // CASE 4: Valid Cryptographic Salted Hash Token -> Convert & Display Verified
+    lastVerifiedToken = verifiedResult.token || rawInput;
+    const candidateData = verifiedResult.data;
+    const initials = (candidateData.name || candidateData.candidateName || "Candidate")
+      .split(" ")
+      .map(w => w.charAt(0))
+      .join("")
+      .substring(0, 2)
+      .toUpperCase() || "CG";
+
+    if (resAvatar) resAvatar.textContent = initials;
+    if (resName) resName.textContent = candidateData.name || candidateData.candidateName || "Candidate";
+    if (resEmail) resEmail.textContent = candidateData.email || "—";
+    if (resTrack) resTrack.textContent = candidateData.track || "Full Stack Web Development";
+    const certSerial = candidateData.serialNumber || candidateData.certId || "CG-MSME-2026";
+    if (resCertId) resCertId.textContent = certSerial;
+    if (resGrade) resGrade.textContent = candidateData.grade || "Grade A+ (Score: 99/100) • Outstanding";
+    if (resStatus) resStatus.textContent = candidateData.status || candidateData.duration || "100% Completed • 8-12 Weeks (Remote)";
+    if (resTimestamp) resTimestamp.textContent = candidateData.issueDate || `Active • Verified on ${new Date().toLocaleDateString("en-IN")}`;
+    if (resSaltVal) resSaltVal.textContent = verifiedResult.salt ? `${verifiedResult.salt.substring(0, 16)}...` : "0x7f3a8b92...";
+    if (resCryptoStatus) resCryptoStatus.innerHTML = `HMAC-SHA256 Valid ✓ <small style="color:#16a34a; font-weight:600;">(Tamper Check Passed)</small>`;
+
+    if (resultCard) {
+      resultCard.style.display = "block";
+      resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    showToast(`✅ Authentic Certificate Verified for ${candidateData.name || candidateData.candidateName}! 🎓`);
   }
 
   // Search form submit
@@ -1174,11 +1211,57 @@ function initCertificateVerificationModal() {
     });
   }
 
+  // Handle scanned QR payload & auto-fetch
+  function handleDetectedQr(qrPayload) {
+    stopCamera();
+
+    if (qrFeedback) {
+      qrFeedback.innerHTML = `✅ QR Code detected! Verifying cryptographic salt & signature...`;
+    }
+
+    // Switch to search tab and auto-fill
+    switchVTab("vtab-search");
+    if (searchInput) searchInput.value = qrPayload;
+    performVerification(qrPayload);
+  }
+
+  // Continuous Camera Frame Scanner Loop (jsQR)
+  function scanCameraFrame() {
+    if (!videoStream || !qrVideo) return;
+
+    if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
+      if (!scanCanvas) {
+        scanCanvas = document.createElement("canvas");
+        scanCtx = scanCanvas.getContext("2d", { willReadFrequently: true });
+      }
+
+      scanCanvas.width = qrVideo.videoWidth;
+      scanCanvas.height = qrVideo.videoHeight;
+      scanCtx.drawImage(qrVideo, 0, 0, scanCanvas.width, scanCanvas.height);
+      const imageData = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+
+      if (typeof jsQR !== "undefined") {
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "attemptBoth"
+        });
+
+        if (code && code.data && code.data.trim()) {
+          handleDetectedQr(code.data);
+          return;
+        }
+      }
+    }
+
+    if (videoStream) {
+      animationFrameId = requestAnimationFrame(scanCameraFrame);
+    }
+  }
+
   // Camera QR Scanner handlers
   async function startCamera() {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        if (qrFeedback) qrFeedback.textContent = "Camera access not supported on this browser. Please use the Upload QR Image option.";
+        if (qrFeedback) qrFeedback.textContent = "Camera access is not supported on this browser. Please use the Upload QR Image option below.";
         return;
       }
 
@@ -1189,34 +1272,39 @@ function initCertificateVerificationModal() {
 
       if (qrVideo) {
         qrVideo.srcObject = videoStream;
+        qrVideo.setAttribute("playsinline", "true");
         qrVideo.style.display = "block";
-        qrVideo.play();
+        await qrVideo.play();
       }
+
       if (qrPlaceholder) qrPlaceholder.style.display = "none";
       if (btnStartCamera) btnStartCamera.innerHTML = `<span>🛑 Stop Camera</span>`;
-      if (qrFeedback) qrFeedback.textContent = "Scanning QR code in real-time...";
+      if (qrFeedback) qrFeedback.textContent = "Point your camera at the certificate's Salted QR code...";
 
-      // Simulate QR auto-detection after 2.5s when active
-      setTimeout(() => {
-        if (videoStream && verifyModal.classList.contains("active")) {
-          stopCamera();
-          if (qrFeedback) qrFeedback.textContent = "QR Code detected successfully! Verifying in database...";
-          performVerification("CG-MSME-2026-CERT-8842");
-        }
-      }, 2500);
+      // Start continuous frame analysis
+      animationFrameId = requestAnimationFrame(scanCameraFrame);
 
     } catch (err) {
-      if (qrFeedback) qrFeedback.textContent = "Camera permission denied or camera unavailable. Please upload a QR code image.";
+      console.warn("Camera start notice:", err);
+      if (qrFeedback) qrFeedback.textContent = "Camera access denied or unavailable. Please upload a certificate QR image.";
       stopCamera();
     }
   }
 
   function stopCamera() {
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
     if (videoStream) {
       videoStream.getTracks().forEach(track => track.stop());
       videoStream = null;
     }
-    if (qrVideo) qrVideo.style.display = "none";
+    if (qrVideo) {
+      qrVideo.pause();
+      qrVideo.srcObject = null;
+      qrVideo.style.display = "none";
+    }
     if (qrPlaceholder) qrPlaceholder.style.display = "block";
     if (btnStartCamera) btnStartCamera.innerHTML = `<span>📷 Start Camera Scanner</span>`;
   }
@@ -1232,18 +1320,48 @@ function initCertificateVerificationModal() {
     });
   }
 
-  // File upload QR detector
+  // File upload QR detector with jsQR
   if (qrFileInput) {
     qrFileInput.addEventListener("change", (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      if (qrFeedback) qrFeedback.textContent = `Analyzing "${file.name}" for authentic certificate QR signature...`;
+      if (qrFeedback) qrFeedback.textContent = `Analyzing "${file.name}" for authentic salted certificate QR signature...`;
 
-      setTimeout(() => {
-        if (qrFeedback) qrFeedback.textContent = `QR Code Signature decoded successfully from "${file.name}". Checking Firebase database...`;
-        performVerification(file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9@.-]/g, "") || "CG-MSME-2026-CERT-8842");
-      }, 1000);
+      const reader = new FileReader();
+      reader.onload = function() {
+        const img = new Image();
+        img.onload = function() {
+          const c = document.createElement("canvas");
+          c.width = img.width;
+          c.height = img.height;
+          const ctx = c.getContext("2d", { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0);
+          const imgData = ctx.getImageData(0, 0, c.width, c.height);
+
+          let decodedPayload = null;
+          if (typeof jsQR !== "undefined") {
+            const code = jsQR(imgData.data, imgData.width, imgData.height, {
+              inversionAttempts: "attemptBoth"
+            });
+            if (code && code.data && code.data.trim()) {
+              decodedPayload = code.data;
+            }
+          }
+
+          if (decodedPayload) {
+            handleDetectedQr(decodedPayload);
+          } else {
+            // If jsQR did not detect a valid QR code in the image
+            if (qrFeedback) qrFeedback.textContent = `⚠️ No QR code could be detected in "${file.name}". Please ensure the QR image is clear.`;
+            switchVTab("vtab-search");
+            if (searchInput) searchInput.value = file.name;
+            performVerification(file.name);
+          }
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
     });
   }
 
@@ -1259,23 +1377,31 @@ function initCertificateVerificationModal() {
 
   if (btnCopyCertUrl) {
     btnCopyCertUrl.addEventListener("click", () => {
-      const certId = resCertId?.textContent || "CG-MSME-2026-CERT-8842";
-      const url = `https://certifications-coralgenz.vercel.app/?id=${encodeURIComponent(certId)}`;
+      const token = lastVerifiedToken || (searchInput ? searchInput.value.trim() : "");
+      let url = "";
+      if (token.startsWith("http")) {
+        url = token;
+      } else if (isSaltedHashToken(token)) {
+        url = `https://certifications-coralgenz.vercel.app/?v=${encodeURIComponent(token)}`;
+      } else {
+        url = `https://certifications-coralgenz.vercel.app/?id=${encodeURIComponent(resCertId?.textContent || "CG-MSME-2026")}`;
+      }
+
       navigator.clipboard.writeText(url).then(() => {
-        showToast("Official Credential Verification URL copied to clipboard! 🔗");
+        showToast("Official Salted Credential Verification URL copied! 🔗");
       }).catch(() => {
         showToast(`Verification Link: ${url}`);
       });
     });
   }
 
-  // Auto-verify if URL parameters are passed (e.g. ?id=... or ?verify=...)
+  // Auto-verify if URL parameters are passed (e.g. ?v=... or ?token=... or ?id=...)
   const urlParams = new URLSearchParams(window.location.search);
-  const targetCertId = (urlParams.get("id") || urlParams.get("verify") || urlParams.get("cert") || urlParams.get("email") || "").trim();
-  if (targetCertId) {
+  const targetParam = (urlParams.get("v") || urlParams.get("token") || urlParams.get("id") || urlParams.get("verify") || urlParams.get("email") || "").trim();
+  if (targetParam) {
     openVerifyModal();
-    if (searchInput) searchInput.value = targetCertId;
-    performVerification(targetCertId);
+    if (searchInput) searchInput.value = targetParam;
+    performVerification(targetParam);
   }
 }
 
