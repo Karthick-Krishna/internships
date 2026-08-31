@@ -1137,16 +1137,14 @@
     </div>
   </footer>
 
-  <!-- Certificate Verification Modal (Cryptographic Salted Hash Decoder & QR Scanner) -->
-  <!-- Certificate Verification Modal (Cryptographic Salted Hash QR Scanner) -->
+  <!-- Certificate Verification Modal (Cryptographic Salted Hash QR Scanner - Blue & White Modern Theme) -->
   <div class="modal-overlay" id="verify-modal" aria-hidden="true">
-    <div class="modal-card verify-modal-card">
+    <div class="modal-card verify-modal-card verify-blue-white-theme">
       <button class="modal-close" id="verify-modal-close" aria-label="Close modal">✕</button>
       
       <div class="verify-modal-header">
         <div class="verify-modal-icon-badge">🛡️</div>
         <div>
-          <span class="verify-modal-badge">Govt. MSME Official Verification • Salted Hash Security</span>
           <h2 class="modal-title-serif">Certificate Verification Gateway</h2>
           <p class="verify-modal-sub">Scan the candidate's official Salted QR code or upload a certificate image to decode and instantly verify authentic credentials.</p>
         </div>
@@ -1163,7 +1161,7 @@
           <div class="qr-scanner-placeholder" id="qr-scanner-placeholder">
             <span class="qr-big-icon">📷</span>
             <p>Point camera at candidate's Salted QR code</p>
-            <span class="qr-hint-tag">Instant Salted Decode</span>
+            <span class="qr-hint-tag">⚡ Instant Salted Decode</span>
           </div>
           <video id="qr-video" class="qr-video-stream" playsinline style="display: none;"></video>
           <canvas id="qr-canvas" style="display: none;"></canvas>
@@ -1190,58 +1188,109 @@
       <!-- Error / Not Found Status Box -->
       <div id="verify-status-box" class="login-modal-status-box" style="display: none;"></div>
 
-      <!-- Live Verified Result Card (Converted from Salted Hash) -->
-      <div id="verify-result-card" class="verify-result-card" style="display: none;">
-        <div class="result-badge-row">
-          <span class="result-status-pill">✅ AUTHENTIC & VERIFIED</span>
-          <span class="result-crypto-pill">🛡️ Salted Hash Verified</span>
-          <span class="result-msme-pill">🏛️ MSME Govt. Registered</span>
-        </div>
-
-        <div class="result-candidate-block">
-          <div class="result-avatar" id="res-candidate-avatar">CK</div>
-          <div class="result-info">
-            <h3 id="res-candidate-name">Candidate Name</h3>
-            <p id="res-candidate-email">candidate@email.com</p>
+      <!-- Live Verified Result Card (Modern Graphical Enterprise Credential UI) -->
+      <div id="verify-result-card" class="verify-result-card credential-card-graphical" style="display: none;">
+        
+        <!-- Credential Security Top Bar / Header -->
+        <div class="credential-top-bar">
+          <div class="credential-brand">
+            <div class="credential-logo-box">
+              <img src="coralgenz-logo.png" alt="Coralgenz Global" class="credential-company-logo">
+            </div>
+            <div class="credential-brand-info">
+              <span class="credential-company-name">Coralgenz Global</span>
+              <span class="credential-company-tag">Registered Enterprise • Govt. MSME</span>
+            </div>
+          </div>
+          <div class="credential-auth-badge">
+            <span class="auth-badge-icon">✅</span>
+            <span class="auth-badge-text">AUTHENTIC & VERIFIED</span>
           </div>
         </div>
 
-        <div class="result-details-grid">
-          <div class="result-detail-item">
-            <span class="res-label">Internship Track:</span>
-            <strong class="res-val" id="res-track-name">Full Stack Web Development</strong>
+        <!-- Candidate Identity Hero Box -->
+        <div class="credential-candidate-hero">
+          <div class="candidate-avatar-ring">
+            <div class="candidate-avatar-core" id="res-candidate-avatar">T</div>
           </div>
-          <div class="result-detail-item">
-            <span class="res-label">Certificate Serial ID:</span>
-            <code class="res-val res-code" id="res-cert-id">CG-MSME-2026-CERT-8842</code>
-          </div>
-          <div class="result-detail-item">
-            <span class="res-label">Performance Grade:</span>
-            <strong class="res-val res-grade" id="res-grade-score">Grade A+ (Score: 98.5%) • Outstanding</strong>
-          </div>
-          <div class="result-detail-item">
-            <span class="res-label">Status & Duration:</span>
-            <span class="res-val" id="res-cohort-status">100% Completed • 8-12 Weeks (Remote)</span>
-          </div>
-          <div class="result-detail-item">
-            <span class="res-label">Cryptographic Salt:</span>
-            <code class="res-val res-code font-mono" id="res-salt-val">2c3a768b0fe7...</code>
-          </div>
-          <div class="result-detail-item">
-            <span class="res-label">Anti-Tamper Signature:</span>
-            <span class="res-val res-crypto-status" id="res-crypto-status">HMAC-SHA256 Valid ✓</span>
-          </div>
-          <div class="result-detail-item">
-            <span class="res-label">Issuing Authority:</span>
-            <span class="res-val">Coralgenz Global, Coimbatore, Tamil Nadu, India</span>
-          </div>
-          <div class="result-detail-item">
-            <span class="res-label">Verification Timestamp:</span>
-            <span class="res-val" id="res-timestamp">Active & Cryptographically Signed</span>
+          <div class="candidate-meta-info">
+            <div class="candidate-name-row">
+              <h3 class="candidate-fullname" id="res-candidate-name">thavanth</h3>
+              <span class="candidate-verified-chip">✓ Verified</span>
+            </div>
+            <p class="candidate-email-address" id="res-candidate-email">x@gmail.com</p>
           </div>
         </div>
 
-        <div class="result-actions-row">
+        <!-- Graphical Specification Tiles Grid -->
+        <div class="credential-specs-grid">
+          
+          <!-- Tile 1: Internship Track -->
+          <div class="spec-tile spec-tile-track">
+            <div class="spec-icon-badge">💻</div>
+            <div class="spec-content">
+              <span class="spec-label">Internship Track:</span>
+              <strong class="spec-value" id="res-track-name">Full Stack Web Development (MERN / Next.js)</strong>
+            </div>
+          </div>
+
+          <!-- Tile 2: Certificate Serial ID -->
+          <div class="spec-tile spec-tile-id">
+            <div class="spec-icon-badge">📜</div>
+            <div class="spec-content">
+              <span class="spec-label">Certificate Serial ID:</span>
+              <code class="spec-code-tag" id="res-cert-id">CG-MSME-2026-CERT-8328</code>
+            </div>
+          </div>
+
+          <!-- Tile 3: Performance Grade -->
+          <div class="spec-tile spec-tile-grade">
+            <div class="spec-icon-badge">🏆</div>
+            <div class="spec-content">
+              <span class="spec-label">Performance Grade:</span>
+              <strong class="spec-value spec-grade-val" id="res-grade-score">Grade A+ (Score: 99/100) • Outstanding</strong>
+            </div>
+          </div>
+
+          <!-- Tile 4: Status & Duration -->
+          <div class="spec-tile spec-tile-status">
+            <div class="spec-icon-badge">⏱️</div>
+            <div class="spec-content">
+              <span class="spec-label">Status & Duration:</span>
+              <span class="spec-value" id="res-cohort-status">100% Completed • MSME Verified Deliverables</span>
+            </div>
+          </div>
+
+          <!-- Tile 5: Issuing Authority -->
+          <div class="spec-tile spec-tile-authority">
+            <div class="spec-icon-badge">🏛️</div>
+            <div class="spec-content">
+              <span class="spec-label">Issuing Authority:</span>
+              <span class="spec-value">Coralgenz Global, Coimbatore, Tamil Nadu, India</span>
+            </div>
+          </div>
+
+          <!-- Tile 6: Verification Timestamp -->
+          <div class="spec-tile spec-tile-time">
+            <div class="spec-icon-badge">📅</div>
+            <div class="spec-content">
+              <span class="spec-label">Verification Timestamp:</span>
+              <span class="spec-value" id="res-timestamp">August 2026</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Official Seal & Security Stamp Watermark -->
+        <div class="credential-watermark-row">
+          <div class="credential-security-seal">
+            <span class="seal-icon">🛡️</span>
+            <span>Tamper-Proof Cryptographic Verification • Coralgenz Enterprise Registry</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="credential-actions-group">
           <button class="btn-res-action btn-res-print" id="btn-print-verified-cert">
             <span>📄 Print / Save Verification Document (PDF)</span>
           </button>
@@ -1249,6 +1298,7 @@
             <span>🔗 Copy Salted Verification URL</span>
           </button>
         </div>
+
       </div>
 
       <!-- Normal Format Blocked / Security Rejection Card -->
