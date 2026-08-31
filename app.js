@@ -68,7 +68,7 @@ const TRACKS_DATA = {
   "c-dev": {
     title: "C Programming & Systems Fundamentals",
     icon: "⚙️",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹499 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Build an unbreakable computer science foundation. Master procedural logic, pointers, dynamic memory management, low-level data structures, and hardware-software interaction in C.",
     curriculum: [
       "Procedural programming syntax, data types, control structures, and modular functions",
@@ -82,7 +82,7 @@ const TRACKS_DATA = {
   "sql-db": {
     title: "SQL & Relational Database Engineering",
     icon: "🗄️",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹499 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Master database architecture and relational data modeling. Learn high-performance SQL querying, ACID transactions, complex joins, database indexing, and query optimization.",
     curriculum: [
       "Relational database design, Entity-Relationship (ER) modeling, and 3NF normalization",
@@ -96,7 +96,7 @@ const TRACKS_DATA = {
   "ui-ux": {
     title: "UI/UX & Product Design",
     icon: "🎨",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹499 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Bridge aesthetics and functionality. You will conduct user research, craft sleek design systems, build interactive prototypes in Figma, and design seamless digital experiences.",
     curriculum: [
       "User research, journey mapping, personas, and information architecture",
@@ -110,7 +110,7 @@ const TRACKS_DATA = {
   "cpp-dev": {
     title: "C++ & Core Data Structures",
     icon: "⚡",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹499 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Master modern C++ and performance-critical software engineering. Dive deep into Object-Oriented Programming, Standard Template Library (STL), memory management, and high-efficiency algorithms.",
     curriculum: [
       "Modern C++ (C++17/20), OOP principles (Encapsulation, Inheritance, Polymorphism)",
@@ -124,7 +124,7 @@ const TRACKS_DATA = {
   "dsa-dev": {
     title: "Data Structures & Algorithms (DSA)",
     icon: "🧩",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹499 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Crack technical coding interviews with confidence. Master core algorithmic thinking, recursive problem-solving, tree/graph traversals, dynamic programming, and complexity analysis.",
     curriculum: [
       "Time and space complexity analysis (Big-O notation) and array manipulation patterns",
@@ -138,7 +138,7 @@ const TRACKS_DATA = {
   "frontend": {
     title: "Frontend Web Engineering",
     icon: "💻",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹499 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Focus on crafting ultra-fast, smooth, and visually striking web interfaces. Master modern JavaScript, CSS animation techniques, component state, and web performance optimization.",
     curriculum: [
       "Advanced responsive layouts with modern CSS Grid, Flexbox, and TailwindCSS",
@@ -152,7 +152,7 @@ const TRACKS_DATA = {
   "python-dev": {
     title: "Python Developer",
     icon: "🐍",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹499 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Build scalable backend systems, automation workflows, and high-performance REST APIs using Python, Django, FastAPI, and PostgreSQL with clean, production-grade architecture.",
     curriculum: [
       "Advanced Python programming, data structures, and asynchronous programming",
@@ -166,7 +166,7 @@ const TRACKS_DATA = {
   "java-dev": {
     title: "Java Developer",
     icon: "☕",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹499 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Master enterprise Java backend engineering. Architect robust Spring Boot microservices, high-throughput RESTful APIs, and database persistence using Hibernate and MySQL.",
     curriculum: [
       "Core Java 17+, Object-Oriented Design patterns, and Collections Framework",
@@ -180,7 +180,7 @@ const TRACKS_DATA = {
   "fullstack": {
     title: "Full Stack Web Development",
     icon: "🌐",
-    meta: ["⚡ ₹500 (Pay Only After Offer Letter)", "🌐 Remote"],
+    meta: ["⚡ ₹599 (Pay Only After Offer Letter)", "🌐 Remote"],
     description: "Immerse yourself in full-cycle modern web product engineering. Architect robust web platforms from responsive frontends to scalable microservices and SQL/NoSQL databases.",
     curriculum: [
       "Frontend architecture with React.js, Next.js, and TypeScript",
@@ -529,12 +529,14 @@ window.addEventListener("scroll", () => {
 if (mobileToggle && navMenu) {
   mobileToggle.addEventListener("click", () => {
     navMenu.classList.toggle("mobile-active");
+    mobileToggle.classList.toggle("is-active");
   });
 
   // Close mobile menu on clicking nav link
   navMenu.querySelectorAll(".nav-link").forEach(link => {
     link.addEventListener("click", () => {
       navMenu.classList.remove("mobile-active");
+      mobileToggle.classList.remove("is-active");
     });
   });
 }
@@ -1219,9 +1221,6 @@ function initCertificateVerificationModal() {
       qrFeedback.innerHTML = `✅ QR Code detected! Verifying cryptographic salt & signature...`;
     }
 
-    // Switch to search tab and auto-fill
-    switchVTab("vtab-search");
-    if (searchInput) searchInput.value = qrPayload;
     performVerification(qrPayload);
   }
 
