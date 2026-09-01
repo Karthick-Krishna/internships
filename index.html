@@ -19,6 +19,84 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Lusitana:wght@400;700&family=Lustria&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   
+  <!-- Security: Disable Inspect, Context Menu & DevTools -->
+  <script>
+    (function() {
+      // 1. Disable Right Click Context Menu
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      }, { capture: true });
+
+      // 2. Disable Keyboard Shortcuts (F12, Ctrl+Shift+I/J/C/K, Ctrl+U, Ctrl+S)
+      document.addEventListener('keydown', function(e) {
+        // F12
+        if (e.key === 'F12' || e.keyCode === 123) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const isModifier = isMac ? (e.metaKey || e.ctrlKey) : e.ctrlKey;
+        const isShiftOrAlt = e.shiftKey || e.altKey;
+
+        // Ctrl+Shift+I / Cmd+Option+I (Inspect)
+        // Ctrl+Shift+J / Cmd+Option+J (Console)
+        // Ctrl+Shift+C / Cmd+Option+C (Inspect Element)
+        // Ctrl+Shift+K (Firefox DevTools)
+        if (isModifier && isShiftOrAlt && (
+          e.key === 'I' || e.key === 'i' ||
+          e.key === 'J' || e.key === 'j' ||
+          e.key === 'C' || e.key === 'c' ||
+          e.key === 'K' || e.key === 'k'
+        )) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+
+        // Ctrl+U / Cmd+Option+U (View Source)
+        if (isModifier && (e.key === 'U' || e.key === 'u')) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+
+        // Ctrl+S / Cmd+S (Save Page)
+        if (isModifier && (e.key === 'S' || e.key === 's')) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }, { capture: true });
+
+      // 3. Disable Dragging of elements
+      document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+      }, { capture: true });
+
+      // 4. Debugger Loop Trap against DevTools
+      setInterval(function() {
+        const start = performance.now();
+        (function() { return false; }['constructor']('debugger')());
+        const end = performance.now();
+        if (end - start > 100) {
+          try {
+            console.clear();
+          } catch(err) {}
+        }
+      }, 1000);
+
+      // 5. Clear Console continuously
+      setInterval(function() {
+        try {
+          console.clear();
+        } catch(err) {}
+      }, 2000);
+    })();
+  </script>
+
   <!-- jsQR Code Decoder & QRCode Generator Libraries (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1219,21 +1297,55 @@
 
   <!-- Candidate Login & Task Submission / Certification Modal -->
   <div class="modal-overlay" id="login-modal" aria-hidden="true">
-    <div class="modal-card login-modal-card">
+    <div class="modal-card login-modal-card" id="login-modal-card">
       <button class="modal-close" id="login-modal-close" aria-label="Close modal">✕</button>
       
+      <!-- Modal Navigation Header Switcher (Candidate vs Admin) -->
+      <div class="auth-role-switcher" id="auth-role-switcher">
+        <button type="button" class="role-switch-btn active" id="btn-role-candidate" data-view="candidate">👤 Candidate Portal</button>
+        <button type="button" class="role-switch-btn" id="btn-role-admin" data-view="admin">🛡️ Admin Management</button>
+      </div>
+
       <!-- VIEW 1: Candidate Authentication (Firebase Auth) -->
       <div id="login-view-auth">
         <div class="login-modal-header">
-          <div class="login-modal-icon-badge">🔥</div>
+          <div class="login-modal-icon-badge">🔐</div>
           <div>
             <span class="login-modal-badge" id="auth-header-badge">Official Candidate Portal</span>
-            <h2 class="modal-title-serif" id="auth-header-title">Candidate Login & Task Submission</h2>
-            <p class="login-modal-sub" id="auth-header-sub">Sign in with your registered email and password to access your task dashboard, submit project milestones, and claim your MSME Certificate.</p>
+            <h2 class="modal-title-serif" id="auth-header-title">Candidate Login & Task Portal</h2>
+            <p class="login-modal-sub" id="auth-header-sub">Sign in with your registered email and password to access your assigned course task submission form and MSME Certificate.</p>
           </div>
         </div>
 
+        <!-- Mode switcher inside Candidate Auth (Sign In vs First-Time Activation) -->
+        <div class="candidate-auth-toggle-pill" id="candidate-auth-toggle-pill">
+          <button type="button" class="cand-tab-btn active" id="btn-mode-signin">Sign In</button>
+          <button type="button" class="cand-tab-btn" id="btn-mode-register">Activate Account & Course</button>
+        </div>
+
         <form class="candidate-login-form" id="candidate-login-form">
+          <div class="form-group" id="reg-name-group" style="display: none;">
+            <label for="candidate-name">Candidate Full Name <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <span class="input-icon">👤</span>
+              <input type="text" id="candidate-name" placeholder="e.g. Karthick Krishna">
+            </div>
+          </div>
+
+          <div class="form-group" id="reg-course-group" style="display: none;">
+            <label for="candidate-course-select">Select Course / Track <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <span class="input-icon">🎓</span>
+              <select id="candidate-course-select">
+                <option value="java">☕ Java Developer</option>
+                <option value="python">🐍 Python Developer</option>
+                <option value="c">⚙️ C Programming & Systems</option>
+                <option value="web">🌐 Frontend Web Engineering</option>
+                <option value="fullstack" selected>🚀 Full Stack Web Development</option>
+              </select>
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="candidate-email">Registered Email Address <span class="required">*</span></label>
             <div class="input-with-icon">
@@ -1268,196 +1380,128 @@
         </div>
       </div>
 
-      <!-- VIEW 2: Candidate Task Submission & Certification Dashboard -->
-      <div id="login-view-dashboard" style="display: none;">
-        <!-- Candidate Profile Header -->
-        <div class="dash-profile-bar">
-          <div class="dash-profile-left">
-            <div class="dash-avatar" id="dash-user-avatar">CG</div>
-            <div class="dash-profile-info">
-              <div class="dash-user-name-row">
-                <h3 id="dash-user-email">candidate@email.com</h3>
-                <span class="dash-status-badge">🛡️ Offer Verified</span>
-              </div>
-              <p class="dash-offer-id-text">Offer Ref: <strong id="dash-user-offer">CG-2026-ACTIVE</strong> • Cohort 2026</p>
-            </div>
-          </div>
-          <button class="btn-dash-logout" id="btn-dash-logout" title="Switch Account">Logout ✕</button>
-        </div>
-
-        <!-- Milestone Progress Card -->
-        <div class="dash-milestone-progress-card">
-          <div class="progress-card-header">
-            <div class="progress-title-wrap">
-              <span class="progress-card-title">Internship Milestone Progress</span>
-              <span class="progress-percentage-badge" id="dash-progress-text">67% Completed</span>
-            </div>
-            <span class="progress-sub-text">Submit final deliverables to achieve completion status & unlock certificate</span>
-          </div>
-          <div class="dash-progress-track">
-            <div class="dash-progress-fill" id="dash-progress-bar" style="width: 67%;"></div>
-          </div>
-          <div class="dash-milestone-steps">
-            <div class="milestone-step-pill completed">
-              <span class="step-check">✓</span>
-              <span>M1: Setup & Architecture</span>
-            </div>
-            <div class="milestone-step-pill completed">
-              <span class="step-check">✓</span>
-              <span>M2: API & Database</span>
-            </div>
-            <div class="milestone-step-pill current" id="pill-milestone-3">
-              <span class="step-check">⚡</span>
-              <span>M3: Final Production Capstone</span>
-            </div>
+      <!-- VIEW 1B: Admin Management & Course Access Provisioning (Firebase Firestore) -->
+      <div id="login-view-admin" style="display: none;">
+        <div class="login-modal-header">
+          <div class="login-modal-icon-badge admin-badge">🛡️</div>
+          <div>
+            <span class="login-modal-badge admin-pill">Enterprise Administration</span>
+            <h2 class="modal-title-serif">Candidate Course Access & Provisioning</h2>
+            <p class="login-modal-sub">Authorize candidate email accounts, assign specific internship courses (Java, Python, C, Web Development, Full Stack), and sync to Firebase server.</p>
           </div>
         </div>
 
-        <!-- Dashboard Tabs Nav -->
-        <div class="dash-tabs-nav">
-          <button class="dash-tab-btn active" data-tab="tab-submit-task">🚀 Submit Final Task</button>
-          <button class="dash-tab-btn" data-tab="tab-evaluations">📊 Milestone Evaluations</button>
-          <button class="dash-tab-btn" data-tab="tab-certificate">🎓 Claim Certificate</button>
+        <!-- Admin Sub-Navigation Tabs -->
+        <div class="admin-sub-tabs">
+          <button type="button" class="admin-sub-tab active" data-admin-tab="tab-add-candidate">➕ Add Candidate & Assign Course</button>
+          <button type="button" class="admin-sub-tab" data-admin-tab="tab-manage-forms">🔗 Configure Course Forms</button>
+          <button type="button" class="admin-sub-tab" data-admin-tab="tab-candidate-list">📋 Registered Candidates</button>
         </div>
 
-        <!-- Tab 1: Submit Task Form -->
-        <div class="dash-tab-pane active" id="tab-submit-task">
-          <form class="task-submission-form" id="task-submission-form">
-            <div class="form-group">
-              <label for="task-milestone-select">Select Milestone Deliverable <span class="required">*</span></label>
-              <div class="input-with-icon">
-                <span class="input-icon">🎯</span>
-                <select id="task-milestone-select" required>
-                  <option value="m3" selected>Milestone 3: Final Production Capstone & Deployment</option>
-                  <option value="m2">Milestone 2: Backend API & Database Persistence (Resubmit)</option>
-                  <option value="m1">Milestone 1: Core Setup & Repository Architecture (Resubmit)</option>
-                </select>
+        <!-- Admin Tab 1: Add Candidate Form -->
+        <div class="admin-tab-pane active" id="admin-tab-add-candidate">
+          <form class="candidate-login-form" id="admin-candidate-form">
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="admin-candidate-email">Candidate Email <span class="required">*</span></label>
+                <div class="input-with-icon">
+                  <span class="input-icon">📧</span>
+                  <input type="email" id="admin-candidate-email" placeholder="candidate@gmail.com" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="admin-candidate-password">Portal Password <span class="required">*</span></label>
+                <div class="input-with-icon">
+                  <span class="input-icon">🔑</span>
+                  <input type="password" id="admin-candidate-password" placeholder="Min. 6 chars (for Firebase Auth)" required minlength="6">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="admin-candidate-name">Candidate Full Name <span class="required">*</span></label>
+                <div class="input-with-icon">
+                  <span class="input-icon">👤</span>
+                  <input type="text" id="admin-candidate-name" placeholder="e.g. Karthick Krishna" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="admin-candidate-course">Assign Course / Internship Track <span class="required">*</span></label>
+                <div class="input-with-icon">
+                  <span class="input-icon">🎓</span>
+                  <select id="admin-candidate-course" required>
+                    <option value="java">☕ Java Developer</option>
+                    <option value="python">🐍 Python Developer</option>
+                    <option value="c">⚙️ C Programming & Systems</option>
+                    <option value="web">🌐 Frontend Web Engineering</option>
+                    <option value="fullstack" selected>🚀 Full Stack Web Development</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <div class="form-group">
-              <label for="github-repo-url">Public GitHub Repository Link <span class="required">*</span></label>
+              <label for="admin-candidate-custom-form">Custom Google Form URL (Optional - overrides track default)</label>
               <div class="input-with-icon">
-                <span class="input-icon">🐙</span>
-                <input type="url" id="github-repo-url" placeholder="https://github.com/your-username/your-project" required>
+                <span class="input-icon">🔗</span>
+                <input type="url" id="admin-candidate-custom-form" placeholder="https://docs.google.com/forms/d/e/.../viewform">
               </div>
-              <span class="input-helper">Ensure your repo contains clean code, clear README.md, and test instructions.</span>
+              <span class="input-helper">Leave empty to automatically use the course's configured task submission form link.</span>
             </div>
 
-            <div class="form-group">
-              <label for="live-demo-url">Live Hosted Project / Video Demo URL <span class="required">*</span></label>
-              <div class="input-with-icon">
-                <span class="input-icon">🌐</span>
-                <input type="url" id="live-demo-url" placeholder="https://your-project.vercel.app or Loom video link" required>
-              </div>
-            </div>
+            <div id="admin-action-status" class="login-modal-status-box" style="display: none;"></div>
 
-            <div class="form-group">
-              <label for="task-notes">Key Deliverables & Implementation Summary <span class="required">*</span></label>
-              <textarea id="task-notes" rows="3" class="dash-textarea" placeholder="Describe the technical modules you implemented, architecture patterns used, and instructions for reviewers..." required></textarea>
-            </div>
-
-            <div id="task-submit-status" class="login-modal-status-box" style="display: none;"></div>
-
-            <button type="submit" class="btn-modal-submit-login" id="btn-submit-task">
-              <span>Submit Task & Request Certification Review</span>
-              <span>🚀</span>
+            <button type="submit" class="btn-modal-submit-login admin-submit-btn" id="btn-admin-submit-candidate">
+              <span id="btn-admin-submit-text">Grant Course Access & Save to Firebase</span>
+              <span>💾</span>
             </button>
           </form>
         </div>
 
-        <!-- Tab 2: Evaluations & Review Feedback -->
-        <div class="dash-tab-pane" id="tab-evaluations">
-          <div class="evaluations-list">
-            <div class="eval-card eval-passed">
-              <div class="eval-header">
-                <div class="eval-title-wrap">
-                  <span class="eval-tag-pass">Score: 98/100 • Approved</span>
-                  <h4>Milestone 1: Core Setup & Git Workflow</h4>
-                </div>
-                <span class="eval-date">Evaluated on Cohort Week 2</span>
-              </div>
-              <p class="eval-feedback">"Excellent repository branching structure, clean modular folders, and comprehensive README documentation. Meets enterprise standards."</p>
-              <span class="eval-reviewer">Reviewed by: <strong>Lead Technical Mentor (Coralgenz Global)</strong></span>
+        <!-- Admin Tab 2: Configure Course Google Form URLs -->
+        <div class="admin-tab-pane" id="admin-tab-manage-forms" style="display: none;">
+          <form class="candidate-login-form" id="admin-forms-config-form">
+            <div class="form-group">
+              <label for="form-url-java">☕ Java Developer - Google Form URL</label>
+              <input type="url" id="form-url-java" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
+            </div>
+            <div class="form-group">
+              <label for="form-url-python">🐍 Python Developer - Google Form URL</label>
+              <input type="url" id="form-url-python" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
+            </div>
+            <div class="form-group">
+              <label for="form-url-c">⚙️ C Programming & Systems - Google Form URL</label>
+              <input type="url" id="form-url-c" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
+            </div>
+            <div class="form-group">
+              <label for="form-url-web">🌐 Frontend Web Engineering - Google Form URL</label>
+              <input type="url" id="form-url-web" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
+            </div>
+            <div class="form-group">
+              <label for="form-url-fullstack">🚀 Full Stack Web Development - Google Form URL</label>
+              <input type="url" id="form-url-fullstack" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
             </div>
 
-            <div class="eval-card eval-passed">
-              <div class="eval-header">
-                <div class="eval-title-wrap">
-                  <span class="eval-tag-pass">Score: 96/100 • Approved</span>
-                  <h4>Milestone 2: Feature Engineering & Persistence</h4>
-                </div>
-                <span class="eval-date">Evaluated on Cohort Week 6</span>
-              </div>
-              <p class="eval-feedback">"Strong database schema normalization, responsive client states, and robust error handling across endpoints."</p>
-              <span class="eval-reviewer">Reviewed by: <strong>Senior Engineering Panel</strong></span>
-            </div>
+            <div id="admin-forms-status" class="login-modal-status-box" style="display: none;"></div>
 
-            <div class="eval-card" id="eval-card-m3">
-              <div class="eval-header">
-                <div class="eval-title-wrap">
-                  <span class="eval-tag-pending" id="eval-m3-badge">⚡ Ready for Submission</span>
-                  <h4>Milestone 3: Final Production Capstone</h4>
-                </div>
-                <span class="eval-date">Pending Final Review</span>
-              </div>
-              <p class="eval-feedback" id="eval-m3-feedback">Submit your GitHub repository and live demo link in the Submit Task tab to trigger final certification grading.</p>
-              <span class="eval-reviewer">Status: <strong>Awaiting Deliverables</strong></span>
-            </div>
-          </div>
+            <button type="submit" class="btn-modal-submit-login admin-submit-btn" id="btn-admin-save-forms">
+              <span>Save Course Form Links to Firestore</span>
+              <span>⚡</span>
+            </button>
+          </form>
         </div>
 
-        <!-- Tab 3: Certificate & LOR Claim -->
-        <div class="dash-tab-pane" id="tab-certificate">
-          <div class="certificate-claim-container">
-            <div class="cert-preview-card" id="cert-preview-card">
-              <div class="cert-watermark">CORALGENZ GLOBAL</div>
-              <div class="cert-header">
-                <div class="cert-logo-group">
-                  <img src="coralgenz-logo.png" alt="Logo" class="cert-logo-mini">
-                  <div class="cert-logo-text">
-                    <strong>CORALGENZ GLOBAL</strong>
-                    <span>Govt. of India MSME Registered Entity</span>
-                  </div>
-                </div>
-                <div class="cert-seal">MSME<br>VERIFIED</div>
-              </div>
-
-              <div class="cert-title-block">
-                <span class="cert-kicker">CERTIFICATE OF COMPLETION & EXCELLENCE</span>
-                <p class="cert-presented-to">This is to officially certify that</p>
-                <h3 class="cert-candidate-name" id="cert-candidate-name">Candidate Name</h3>
-                <p class="cert-body-text">
-                  has successfully completed all project milestones, code reviews, and enterprise deliverables for the <strong id="cert-track-text">Specialized Engineering Internship</strong> cohort.
-                </p>
-              </div>
-
-              <div class="cert-footer-meta">
-                <div>
-                  <span class="meta-label">Credential Verification ID:</span>
-                  <code class="meta-val" id="cert-id-val">CG-MSME-2026-CERT-8842</code>
-                </div>
-                <div>
-                  <span class="meta-label">Status:</span>
-                  <span class="cert-status-pill" id="cert-status-pill">Active & Verified ✓</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="cert-actions-row">
-              <button class="btn-cert-action btn-cert-primary" id="btn-download-cert">
-                <span>🎓 Download Official Certificate (PDF)</span>
-              </button>
-              <button class="btn-cert-action btn-cert-secondary" id="btn-download-lor">
-                <span>📄 Download Letter of Recommendation (LOR)</span>
-              </button>
-              <button class="btn-cert-action btn-cert-outline" id="btn-copy-cred">
-                <span>🔗 Copy Verification Link</span>
-              </button>
-            </div>
+        <!-- Admin Tab 3: Candidate Registry -->
+        <div class="admin-tab-pane" id="admin-tab-candidate-list" style="display: none;">
+          <div class="admin-registry-toolbar">
+            <span>Authorized Candidates (Stored in Firebase Firestore):</span>
+            <button type="button" class="btn-registry-refresh" id="btn-refresh-candidates">🔄 Refresh List</button>
+          </div>
+          <div class="admin-candidates-container" id="admin-candidates-list">
+            <div class="registry-loading-state">Loading candidate records from Firestore...</div>
           </div>
         </div>
-
       </div>
 
     </div>
@@ -1517,10 +1561,53 @@
     </div>
   </div>
 
+  <!-- In-Domain Official Application Gateway Modal -->
+  <div class="modal-overlay" id="apply-modal" aria-hidden="true">
+    <div class="modal-card apply-modal-card">
+      <button class="modal-close" id="apply-modal-close" aria-label="Close application modal">✕</button>
+      <div class="apply-modal-header">
+        <div class="apply-header-left">
+          <div class="apply-logo-group">
+            <img src="coralgenz-logo.png" alt="Coralgenz Logo" class="apply-logo-mini">
+            <div>
+              <h3 class="apply-modal-title">Official Internship Application Gateway</h3>
+              <p class="apply-modal-sub">
+                <span class="apply-track-badge" id="apply-modal-track-badge">2026 Cohort Application</span>
+                <span>• Govt. MSME Registered Entity • ₹0 Upfront Payment</span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="apply-header-right">
+          <button type="button" class="btn-frame-action" id="btn-apply-refresh" title="Reload Form">🔄 Reload</button>
+        </div>
+      </div>
+
+      <div class="apply-frame-wrap" id="apply-frame-wrap">
+        <div class="frame-loading-overlay" id="apply-loading-indicator">
+          <div class="frame-spinner"></div>
+          <span>Loading official application form securely in-domain...</span>
+        </div>
+        <iframe 
+          id="in-domain-apply-iframe" 
+          class="apply-task-iframe" 
+          src="about:blank"
+          title="Coralgenz Official Application Form"
+          loading="eager"
+          allow="camera; microphone; geolocation"
+        ></iframe>
+      </div>
+
+      <div class="apply-modal-footer">
+        <span>🛡️ <strong>Zero Upfront Payment:</strong> 100% Free Registration. Responses are recorded directly to Coralgenz MSME Evaluation Registry.</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification for Form Redirection -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Main JavaScript File (Firebase Module) -->
-  <script type="module" src="app.js?v=2026.7"></script>
+  <script type="module" src="app.js?v=2026.8"></script>
 </body>
 </html>

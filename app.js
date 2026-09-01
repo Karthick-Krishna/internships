@@ -2,8 +2,44 @@
  * Coralgenz Internship Website - Main JavaScript Controller
  * Theme: Coralgenz Official Light Theme & Pure Development Focus
  * Backend: Firebase Authentication (Email & Password)
+ * Security: Anti-Inspect & DevTools Protection Active
  * =========================================================
  */
+
+// ==========================================
+// 0. ANTI-INSPECT & DEVTOOLS RESTRICTION
+// ==========================================
+(function initAntiInspect() {
+  // Prevent Right Click
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  }, { capture: true });
+
+  // Prevent Developer Shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'F12' || e.keyCode === 123) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    const isModifier = e.ctrlKey || e.metaKey;
+    const isShiftOrAlt = e.shiftKey || e.altKey;
+
+    if (isModifier && isShiftOrAlt && ['I', 'i', 'J', 'j', 'C', 'c', 'K', 'k'].includes(e.key)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    if (isModifier && ['U', 'u', 'S', 's'].includes(e.key)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, { capture: true });
+})();
 
 // Import Firebase SDK Modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -11,6 +47,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebas
 import { 
   getAuth, 
   signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail
@@ -22,7 +59,11 @@ import {
   where,
   getDocs,
   doc,
-  getDoc
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { 
@@ -56,10 +97,10 @@ try {
 }
 
 // ==========================================
-// 2. CONFIGURATION: GOOGLE FORM DESTINATION URL
-// Replace this URL with your actual Google Form link!
+// 2. CONFIGURATION: OFFICIAL APPLICATION GOOGLE FORM URL
 // ==========================================
-const GOOGLE_FORM_URL = "https://forms.google.com";
+const OFFICIAL_APPLY_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScCFRGE3_ivVEoQyh4962KlxTBpI7-Ix2p95i7zbIZ7WDblMw/viewform?embedded=true";
+const GOOGLE_FORM_URL = OFFICIAL_APPLY_FORM_URL;
 
 // ==========================================
 // 3. DETAILED TRACK DATA FOR MODAL
@@ -278,18 +319,29 @@ const TRACKS_DATA = {
 };
 
 // ==========================================
-// 3. APPLICATION REDIRECTION HANDLER
+// 3. IN-DOMAIN APPLICATION GATEWAY CONTROLLER
 // ==========================================
-function handleApplyRedirect(event, optionalTrackTitle = "") {
-  if (event) event.preventDefault();
-  
-  const trackInfo = optionalTrackTitle ? ` for ${optionalTrackTitle}` : "";
-  showToast(`Opening Application Form${trackInfo}... 🚀`);
+const applyModal = document.getElementById("apply-modal");
+const applyModalClose = document.getElementById("apply-modal-close");
+const applyIframe = document.getElementById("in-domain-apply-iframe");
+const applyLoadingIndicator = document.getElementById("apply-loading-indicator");
+const btnApplyRefresh = document.getElementById("btn-apply-refresh");
+const applyModalTrackBadge = document.getElementById("apply-modal-track-badge");
 
-  // Open destination Form in a new secure tab
+function openApplyModal(optionalTrackTitle = "") {
+  const trackParam = optionalTrackTitle ? "?track=" + encodeURIComponent(optionalTrackTitle) : "";
+  showToast(`Opening Official Application Portal... 🚀`);
   setTimeout(() => {
-    window.open(GOOGLE_FORM_URL, "_blank", "noopener,noreferrer");
-  }, 400);
+    window.location.href = "apply.html" + trackParam;
+  }, 200);
+}
+
+function handleApplyRedirect(event, optionalTrackTitle = "") {
+  if (event) {
+    event.preventDefault();
+    if (typeof event.stopPropagation === "function") event.stopPropagation();
+  }
+  openApplyModal(optionalTrackTitle);
 }
 
 // Toast notification helper
@@ -305,12 +357,10 @@ function showToast(message) {
   `;
   container.appendChild(toast);
 
-  // Trigger animation
   requestAnimationFrame(() => {
     toast.classList.add("show");
   });
 
-  // Auto remove
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 400);
@@ -466,13 +516,34 @@ viewDetailButtons.forEach(btn => {
 });
 
 // ==========================================
-// 6. APPLY BUTTON EVENT LISTENERS
+// 6. APPLY BUTTON EVENT LISTENERS (IN-DOMAIN MODAL)
 // ==========================================
-document.querySelectorAll(".apply-trigger").forEach(btn => {
+document.querySelectorAll(".apply-trigger, .pill-btn-main, #nav-apply-btn, #modal-apply-btn").forEach(btn => {
   btn.addEventListener("click", (e) => {
-    const trackTitle = btn.getAttribute("data-track-title") || currentActiveTrackTitle || "";
-    handleApplyRedirect(e, trackTitle);
+    e.preventDefault();
+    e.stopPropagation();
+    const trackTitle = btn.getAttribute("data-track-title") || 
+                       btn.closest(".track-card")?.querySelector(".track-title")?.textContent?.trim() || 
+                       currentActiveTrackTitle || "";
+    openApplyModal(trackTitle);
   });
+});
+
+// Document-wide delegated listener to catch any dynamically clicked apply button/link
+document.addEventListener("click", (e) => {
+  const target = e.target;
+  const applyBtn = target.closest(".apply-trigger, .pill-btn-main, #nav-apply-btn, #modal-apply-btn, .btn-apply, a[href*='apply'], button[data-action='apply']");
+  if (applyBtn) {
+    const text = (applyBtn.textContent || "").toLowerCase();
+    if (text.includes("apply") || applyBtn.classList.contains("apply-trigger") || applyBtn.id === "nav-apply-btn" || applyBtn.id === "modal-apply-btn") {
+      e.preventDefault();
+      e.stopPropagation();
+      const trackTitle = applyBtn.getAttribute("data-track-title") || 
+                         applyBtn.closest(".track-card")?.querySelector(".track-title")?.textContent?.trim() || 
+                         currentActiveTrackTitle || "";
+      openApplyModal(trackTitle);
+    }
+  }
 });
 
 // ==========================================
@@ -606,10 +677,49 @@ if (canvas) {
 }
 
 // ==========================================
-// 11. CANDIDATE TASK SUBMISSION & CERTIFICATION PORTAL (FIREBASE AUTH)
+// 11. CANDIDATE TASK SUBMISSION & CERTIFICATION PORTAL (FIREBASE AUTH & FIRESTORE)
 // ==========================================
+const COURSE_DEFINITIONS = {
+  "java": {
+    title: "Java Developer",
+    badge: "☕ Java Developer",
+    code: "JAVA",
+    color: "#b45309",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSc60E8wJ7L-Java-Internship-Coralgenz/viewform?embedded=true"
+  },
+  "python": {
+    title: "Python Developer",
+    badge: "🐍 Python Developer",
+    code: "PYTHON",
+    color: "#0369a1",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSc60E8wJ7L-Python-Internship-Coralgenz/viewform?embedded=true"
+  },
+  "c": {
+    title: "C Programming & Systems",
+    badge: "⚙️ C Programming & Systems",
+    code: "C",
+    color: "#0d9488",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSc60E8wJ7L-CProg-Internship-Coralgenz/viewform?embedded=true"
+  },
+  "web": {
+    title: "Frontend Web Engineering",
+    badge: "🌐 Frontend Web Engineering",
+    code: "FRONTEND",
+    color: "#dc2626",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSc60E8wJ7L-WebDev-Internship-Coralgenz/viewform?embedded=true"
+  },
+  "fullstack": {
+    title: "Full Stack Web Development",
+    badge: "🚀 Full Stack Web Development",
+    code: "FSW",
+    color: "#4338ca",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSc60E8wJ7L-FullStack-Internship-Coralgenz/viewform?embedded=true"
+  }
+};
+
 function initCandidateLoginModal() {
   const loginModal = document.getElementById("login-modal");
+  const loginModalCard = document.getElementById("login-modal-card");
   const loginModalClose = document.getElementById("login-modal-close");
   const openLoginButtons = document.querySelectorAll(".open-login-modal-btn");
   const loginForm = document.getElementById("candidate-login-form");
@@ -618,44 +728,46 @@ function initCandidateLoginModal() {
   const submitBtnText = document.getElementById("btn-login-submit-text");
   const btnForgotPassword = document.getElementById("btn-forgot-password");
 
+  // Role Switcher Elements
+  const btnRoleCandidate = document.getElementById("btn-role-candidate");
+  const btnRoleAdmin = document.getElementById("btn-role-admin");
+
   // Views
   const authView = document.getElementById("login-view-auth");
-  const dashView = document.getElementById("login-view-dashboard");
+  const adminView = document.getElementById("login-view-admin");
 
-  // Dashboard elements
-  const userAvatar = document.getElementById("dash-user-avatar");
-  const userEmail = document.getElementById("dash-user-email");
-  const userOffer = document.getElementById("dash-user-offer");
-  const btnLogout = document.getElementById("btn-dash-logout");
-  const tabButtons = document.querySelectorAll(".dash-tab-btn");
-  const tabPanes = document.querySelectorAll(".dash-tab-pane");
+  // Candidate Mode Switcher
+  let candidateAuthMode = "signin";
+  const btnModeSignin = document.getElementById("btn-mode-signin");
+  const btnModeRegister = document.getElementById("btn-mode-register");
+  const regNameGroup = document.getElementById("reg-name-group");
+  const regCourseGroup = document.getElementById("reg-course-group");
 
-  // Task submission elements
-  const taskForm = document.getElementById("task-submission-form");
-  const taskSubmitStatus = document.getElementById("task-submit-status");
-  const btnSubmitTask = document.getElementById("btn-submit-task");
-  const progressBar = document.getElementById("dash-progress-bar");
-  const progressText = document.getElementById("dash-progress-text");
-  const milestone3Pill = document.getElementById("pill-milestone-3");
-  const evalCardM3 = document.getElementById("eval-card-m3");
-  const evalM3Badge = document.getElementById("eval-m3-badge");
-  const evalM3Feedback = document.getElementById("eval-m3-feedback");
+  // Admin Elements
+  const adminCandidateForm = document.getElementById("admin-candidate-form");
+  const adminActionStatus = document.getElementById("admin-action-status");
+  const btnAdminSubmitCandidate = document.getElementById("btn-admin-submit-candidate");
+  const adminFormsConfigForm = document.getElementById("admin-forms-config-form");
+  const adminFormsStatus = document.getElementById("admin-forms-status");
+  const adminCandidatesList = document.getElementById("admin-candidates-list");
+  const btnRefreshCandidates = document.getElementById("btn-refresh-candidates");
+  const adminSubTabs = document.querySelectorAll(".admin-sub-tab");
+  const adminTabPanes = {
+    "tab-add-candidate": document.getElementById("admin-tab-add-candidate"),
+    "tab-manage-forms": document.getElementById("admin-tab-manage-forms"),
+    "tab-candidate-list": document.getElementById("admin-tab-candidate-list")
+  };
 
-  // Certificate elements
-  const certCandidateName = document.getElementById("cert-candidate-name");
-  const certIdVal = document.getElementById("cert-id-val");
-  const btnDownloadCert = document.getElementById("btn-download-cert");
-  const btnDownloadLor = document.getElementById("btn-download-lor");
-  const btnCopyCred = document.getElementById("btn-copy-cred");
+  let cachedTrackForms = null;
 
   if (!loginModal) return;
 
-  function showStatus(type, title, message) {
-    if (!statusBox) return;
-    statusBox.className = `login-modal-status-box status-${type}`;
-    statusBox.style.display = "flex";
+  function showStatus(targetBox, type, title, message) {
+    if (!targetBox) return;
+    targetBox.className = `login-modal-status-box status-${type}`;
+    targetBox.style.display = "flex";
     const icon = type === "success" ? "✅" : type === "info" ? "ℹ️" : "⚠️";
-    statusBox.innerHTML = `
+    targetBox.innerHTML = `
       <span class="status-icon">${icon}</span>
       <div>
         <strong>${title}</strong>
@@ -679,7 +791,12 @@ function initCandidateLoginModal() {
   openLoginButtons.forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
-      openLogin();
+      // If user is already authenticated, directly navigate to in-domain task portal
+      if (auth.currentUser) {
+        window.location.href = "task-portal.html";
+      } else {
+        openLogin();
+      }
     });
   });
 
@@ -699,63 +816,347 @@ function initCandidateLoginModal() {
     }
   });
 
-  // Tab switching logic
-  function switchTab(targetTabId) {
-    tabButtons.forEach(btn => {
-      if (btn.getAttribute("data-tab") === targetTabId) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
+  // Auto-open login modal if URL has ?login=1 (e.g. redirected from task-portal when unauthenticated)
+  const pageParams = new URLSearchParams(window.location.search);
+  if (pageParams.get("login") === "1") {
+    openLogin();
+  }
+
+  // --- Role Switcher (Candidate Portal vs Admin Management) ---
+  function switchRoleView(role) {
+    if (role === "admin") {
+      if (btnRoleCandidate) btnRoleCandidate.classList.remove("active");
+      if (btnRoleAdmin) btnRoleAdmin.classList.add("active");
+      if (authView) authView.style.display = "none";
+      if (adminView) adminView.style.display = "block";
+      loadAdminTrackForms();
+      loadAdminCandidatesList();
+    } else {
+      if (btnRoleAdmin) btnRoleAdmin.classList.remove("active");
+      if (btnRoleCandidate) btnRoleCandidate.classList.add("active");
+      if (adminView) adminView.style.display = "none";
+      if (authView) authView.style.display = "block";
+    }
+  }
+
+  if (btnRoleCandidate) {
+    btnRoleCandidate.addEventListener("click", () => switchRoleView("candidate"));
+  }
+  if (btnRoleAdmin) {
+    btnRoleAdmin.addEventListener("click", () => switchRoleView("admin"));
+  }
+
+  // --- Admin Sub-Tabs Navigation ---
+  adminSubTabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetTab = btn.getAttribute("data-admin-tab");
+      adminSubTabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      Object.keys(adminTabPanes).forEach(tabId => {
+        if (adminTabPanes[tabId]) {
+          adminTabPanes[tabId].style.display = tabId === targetTab ? "block" : "none";
+        }
+      });
+
+      if (targetTab === "tab-candidate-list") {
+        loadAdminCandidatesList();
+      } else if (targetTab === "tab-manage-forms") {
+        loadAdminTrackForms();
       }
     });
+  });
 
-    tabPanes.forEach(pane => {
-      if (pane.id === targetTabId) {
-        pane.classList.add("active");
-      } else {
-        pane.classList.remove("active");
+  // --- Candidate Auth Mode Switcher (Sign In vs Register / Activate) ---
+  function setCandidateAuthMode(mode) {
+    candidateAuthMode = mode;
+    if (mode === "register") {
+      if (btnModeSignin) btnModeSignin.classList.remove("active");
+      if (btnModeRegister) btnModeRegister.classList.add("active");
+      if (regNameGroup) regNameGroup.style.display = "block";
+      if (regCourseGroup) regCourseGroup.style.display = "block";
+      if (submitBtnText) submitBtnText.textContent = "Activate Course & Open Task Portal";
+      const nameInput = document.getElementById("candidate-name");
+      if (nameInput) nameInput.required = true;
+    } else {
+      if (btnModeRegister) btnModeRegister.classList.remove("active");
+      if (btnModeSignin) btnModeSignin.classList.add("active");
+      if (regNameGroup) regNameGroup.style.display = "none";
+      if (regCourseGroup) regCourseGroup.style.display = "none";
+      if (submitBtnText) submitBtnText.textContent = "Sign In & Open Task Portal";
+      const nameInput = document.getElementById("candidate-name");
+      if (nameInput) nameInput.required = false;
+    }
+  }
+
+  if (btnModeSignin) {
+    btnModeSignin.addEventListener("click", () => setCandidateAuthMode("signin"));
+  }
+  if (btnModeRegister) {
+    btnModeRegister.addEventListener("click", () => setCandidateAuthMode("register"));
+  }
+
+  // --- Firestore Track Forms Helpers ---
+  async function fetchTrackFormsConfig() {
+    if (cachedTrackForms) return cachedTrackForms;
+    try {
+      const docRef = doc(db, "course_forms", "track_forms");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        cachedTrackForms = docSnap.data();
+        return cachedTrackForms;
+      }
+    } catch (err) {
+      console.warn("Firestore track forms read error, using defaults:", err);
+    }
+    cachedTrackForms = {
+      java: COURSE_DEFINITIONS.java.formUrl,
+      python: COURSE_DEFINITIONS.python.formUrl,
+      c: COURSE_DEFINITIONS.c.formUrl,
+      web: COURSE_DEFINITIONS.web.formUrl,
+      fullstack: COURSE_DEFINITIONS.fullstack.formUrl
+    };
+    return cachedTrackForms;
+  }
+
+  async function loadAdminTrackForms() {
+    const forms = await fetchTrackFormsConfig();
+    const javaInput = document.getElementById("form-url-java");
+    const pythonInput = document.getElementById("form-url-python");
+    const cInput = document.getElementById("form-url-c");
+    const webInput = document.getElementById("form-url-web");
+    const fullstackInput = document.getElementById("form-url-fullstack");
+
+    if (javaInput) javaInput.value = forms.java || COURSE_DEFINITIONS.java.formUrl;
+    if (pythonInput) pythonInput.value = forms.python || COURSE_DEFINITIONS.python.formUrl;
+    if (cInput) cInput.value = forms.c || COURSE_DEFINITIONS.c.formUrl;
+    if (webInput) webInput.value = forms.web || COURSE_DEFINITIONS.web.formUrl;
+    if (fullstackInput) fullstackInput.value = forms.fullstack || COURSE_DEFINITIONS.fullstack.formUrl;
+  }
+
+  // --- Admin Action: Save Course Google Form Links ---
+  if (adminFormsConfigForm) {
+    adminFormsConfigForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const javaUrl = document.getElementById("form-url-java")?.value.trim() || "";
+      const pythonUrl = document.getElementById("form-url-python")?.value.trim() || "";
+      const cUrl = document.getElementById("form-url-c")?.value.trim() || "";
+      const webUrl = document.getElementById("form-url-web")?.value.trim() || "";
+      const fullstackUrl = document.getElementById("form-url-fullstack")?.value.trim() || "";
+
+      try {
+        const payload = {
+          java: javaUrl,
+          python: pythonUrl,
+          c: cUrl,
+          web: webUrl,
+          fullstack: fullstackUrl,
+          updatedAt: new Date().toISOString()
+        };
+
+        // 1. Save to primary track_forms document
+        await setDoc(doc(db, "course_forms", "track_forms"), payload, { merge: true });
+        
+        // 2. Save to secondary settings document
+        try {
+          await setDoc(doc(db, "settings", "course_forms"), payload, { merge: true });
+        } catch (e) {}
+
+        // 3. Save individual course documents
+        try {
+          await setDoc(doc(db, "courses", "java"), { formUrl: javaUrl, title: "Java Developer" }, { merge: true });
+          await setDoc(doc(db, "courses", "python"), { formUrl: pythonUrl, title: "Python Developer" }, { merge: true });
+          await setDoc(doc(db, "courses", "c"), { formUrl: cUrl, title: "C Programming & Systems" }, { merge: true });
+          await setDoc(doc(db, "courses", "web"), { formUrl: webUrl, title: "Frontend Web Engineering" }, { merge: true });
+          await setDoc(doc(db, "courses", "fullstack"), { formUrl: fullstackUrl, title: "Full Stack Web Development" }, { merge: true });
+        } catch (e) {}
+
+        // 4. Save to local storage cache
+        try {
+          localStorage.setItem("coralgenz_track_forms", JSON.stringify(payload));
+        } catch (e) {}
+
+        cachedTrackForms = payload;
+        showStatus(adminFormsStatus, "success", "Saved to Server Database!", "All 5 course Google Form links are successfully synced to Firebase Firestore.");
+        showToast("Course form links saved to Firebase! 💾");
+      } catch (err) {
+        showStatus(adminFormsStatus, "error", "Save Failed", err.message || "Could not save to Firebase Firestore.");
       }
     });
   }
 
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetTabId = btn.getAttribute("data-tab");
-      if (targetTabId) switchTab(targetTabId);
-    });
-  });
+  // --- Admin Action: Add Candidate & Assign Course ---
+  if (adminCandidateForm) {
+    adminCandidateForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = (document.getElementById("admin-candidate-email")?.value || "").trim().toLowerCase();
+      const password = document.getElementById("admin-candidate-password")?.value || "";
+      const name = (document.getElementById("admin-candidate-name")?.value || "").trim();
+      const course = document.getElementById("admin-candidate-course")?.value || "fullstack";
+      const customForm = (document.getElementById("admin-candidate-custom-form")?.value || "").trim();
 
-  // Forgot password handler
+      if (!email || !password || !name) {
+        showStatus(adminActionStatus, "error", "Missing Information", "Please enter email, password, and candidate name.");
+        return;
+      }
+
+      if (btnAdminSubmitCandidate) {
+        btnAdminSubmitCandidate.disabled = true;
+        btnAdminSubmitCandidate.innerHTML = `<span>Saving to Firebase Server... ⏳</span>`;
+      }
+
+      const courseInfo = COURSE_DEFINITIONS[course] || COURSE_DEFINITIONS.fullstack;
+      const offerId = `CG-2026-${courseInfo.code}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      try {
+        // 1. Create or verify account in Firebase Auth
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } catch (authErr) {
+          if (authErr.code !== "auth/email-already-in-use") {
+            console.warn("Auth creation note:", authErr.message);
+          }
+        }
+
+        // 2. Save candidate record in Firestore collection 'candidates'
+        const candidateRef = doc(db, "candidates", email);
+        const candidatePayload = {
+          email: email,
+          name: name,
+          course: course,
+          track: course,
+          courseTitle: courseInfo.title,
+          offerId: offerId,
+          status: "approved",
+          customFormUrl: customForm,
+          formUrl: customForm,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        await setDoc(candidateRef, candidatePayload, { merge: true });
+
+        showStatus(
+          adminActionStatus,
+          "success",
+          "Access Granted & Saved to Firebase! 🎉",
+          `<strong>${email}</strong> provisioned for <strong>${courseInfo.badge}</strong>.<br>Offer Ref: <code>${offerId}</code>. The candidate can now log in to access their in-domain task portal.`
+        );
+
+        showToast(`Candidate ${name} assigned to ${courseInfo.title}! 🚀`);
+        adminCandidateForm.reset();
+        loadAdminCandidatesList();
+      } catch (err) {
+        showStatus(adminActionStatus, "error", "Provisioning Error", err.message || "Failed to save candidate to Firestore.");
+      } finally {
+        if (btnAdminSubmitCandidate) {
+          btnAdminSubmitCandidate.disabled = false;
+          btnAdminSubmitCandidate.innerHTML = `<span>Grant Course Access & Save to Firebase</span><span>💾</span>`;
+        }
+      }
+    });
+  }
+
+  // --- Admin Action: Load Candidate Registry from Firestore ---
+  async function loadAdminCandidatesList() {
+    if (!adminCandidatesList) return;
+    adminCandidatesList.innerHTML = `<div class="registry-loading-state">Fetching candidate records from Firebase Firestore... ⏳</div>`;
+
+    try {
+      const candidatesRef = collection(db, "candidates");
+      const querySnap = await getDocs(candidatesRef);
+
+      if (querySnap.empty) {
+        adminCandidatesList.innerHTML = `
+          <div class="registry-empty-state" style="padding: 1rem; text-align: center; color: #64748b; font-size: 0.82rem;">
+            No candidates registered in Firestore yet. Use the <strong>Add Candidate</strong> tab to grant course access.
+          </div>
+        `;
+        return;
+      }
+
+      let html = "";
+      querySnap.forEach(docSnap => {
+        const data = docSnap.data();
+        const courseInfo = COURSE_DEFINITIONS[data.course] || COURSE_DEFINITIONS.fullstack;
+        html += `
+          <div class="admin-candidate-item">
+            <div class="admin-cand-info">
+              <span class="admin-cand-email">${data.name || "Candidate"} (${data.email})</span>
+              <div class="admin-cand-meta">
+                <span class="admin-cand-course-badge">${courseInfo.badge}</span>
+                <span>• Ref: <code>${data.offerId || "CG-2026"}</code></span>
+              </div>
+            </div>
+            <button type="button" class="btn-text-link fill-cand-login-btn" data-email="${data.email}" style="color: #0284c7; font-weight: 700; font-size: 0.76rem;">
+              Fill Login ↗
+            </button>
+          </div>
+        `;
+      });
+
+      adminCandidatesList.innerHTML = html;
+
+      adminCandidatesList.querySelectorAll(".fill-cand-login-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const email = btn.getAttribute("data-email");
+          const candidateEmailInput = document.getElementById("candidate-email");
+          if (candidateEmailInput) candidateEmailInput.value = email;
+          switchRoleView("candidate");
+          showToast(`Filled ${email} in Candidate Login.`);
+        });
+      });
+    } catch (err) {
+      adminCandidatesList.innerHTML = `
+        <div class="registry-error-state" style="padding: 0.85rem; color: #b91c1c; font-size: 0.82rem;">
+          Could not load candidates from Firestore: ${err.message}
+        </div>
+      `;
+    }
+  }
+
+  if (btnRefreshCandidates) {
+    btnRefreshCandidates.addEventListener("click", loadAdminCandidatesList);
+  }
+
+  // --- Forgot password handler ---
   if (btnForgotPassword) {
     btnForgotPassword.addEventListener("click", async () => {
-      const email = document.getElementById("candidate-email")?.value.trim();
+      const email = (document.getElementById("candidate-email")?.value || "").trim().toLowerCase();
       if (!email) {
-        showStatus("error", "Email Required", "Please enter your email address in the field above to receive a password reset link.");
+        showStatus(statusBox, "error", "Email Required", "Please enter your registered email address above to receive a password reset link.");
         return;
       }
 
       try {
         await sendPasswordResetEmail(auth, email);
-        showStatus("info", "Password Reset Sent", `A password reset link has been dispatched to <strong>${email}</strong>. Please check your inbox and spam folders.`);
+        showStatus(statusBox, "info", "Password Reset Sent", `A password reset link has been sent to <strong>${email}</strong>. Please check your inbox and spam folders.`);
         showToast("Password reset email sent! 📬");
       } catch (err) {
         let msg = err.message;
         if (err.code === "auth/user-not-found") msg = "No candidate account found with this email address.";
         if (err.code === "auth/invalid-email") msg = "Please enter a valid email address.";
-        showStatus("error", "Reset Error", msg);
+        showStatus(statusBox, "error", "Reset Error", msg);
       }
     });
   }
 
-  // Firebase Authentication Form Submit Handler (Sign In Only)
+  // --- Candidate Login & Registration Form Submit Handler ---
   if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("candidate-email")?.value.trim() || "";
+      const email = (document.getElementById("candidate-email")?.value || "").trim().toLowerCase();
       const password = document.getElementById("candidate-password")?.value || "";
+      const name = (document.getElementById("candidate-name")?.value || "").trim();
+      const course = document.getElementById("candidate-course-select")?.value || "fullstack";
 
       if (!email || !password) {
-        showStatus("error", "Missing Fields", "Please enter both your email address and password.");
+        showStatus(statusBox, "error", "Missing Fields", "Please enter both your email address and password.");
+        return;
+      }
+
+      if (candidateAuthMode === "register" && !name) {
+        showStatus(statusBox, "error", "Name Required", "Please enter your full name to activate your candidate account.");
         return;
       }
 
@@ -765,22 +1166,57 @@ function initCandidateLoginModal() {
       }
 
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showToast(`Welcome back, ${email}! 🚀`);
+        if (candidateAuthMode === "register") {
+          const courseInfo = COURSE_DEFINITIONS[course] || COURSE_DEFINITIONS.fullstack;
+          const offerId = `CG-2026-${courseInfo.code}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+          await createUserWithEmailAndPassword(auth, email, password);
+
+          const candidateRef = doc(db, "candidates", email);
+          await setDoc(candidateRef, {
+            email: email,
+            name: name,
+            course: course,
+            courseTitle: courseInfo.title,
+            offerId: offerId,
+            status: "approved",
+            customFormUrl: "",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+
+          showToast(`Account activated for ${courseInfo.title}! Navigating to Task Portal... 🚀`);
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+          showToast(`Welcome back, ${email}! Loading Task Portal... 🚀`);
+        }
+
+        // Navigate directly to the in-domain task portal page
+        setTimeout(() => {
+          window.location.href = "task-portal.html";
+        }, 500);
       } catch (err) {
-        let title = "Sign In Failed";
+        let title = candidateAuthMode === "register" ? "Activation Failed" : "Sign In Failed";
         let message = err.message;
 
         switch (err.code) {
+          case "auth/email-already-in-use":
+            title = "Account Already Exists";
+            message = "An account already exists with this email address. Please switch to <strong>Sign In</strong>.";
+            break;
           case "auth/invalid-credential":
           case "auth/user-not-found":
           case "auth/wrong-password":
             title = "Invalid Credentials";
-            message = "Incorrect email or password. Please verify your credentials or click <strong>Forgot password?</strong>.";
+            message = "Incorrect email or password. If you haven't activated your account yet, click <strong>Activate Account & Course</strong>.";
             break;
           case "auth/invalid-email":
             title = "Invalid Email";
             message = "Please enter a valid email address.";
+            break;
+          case "auth/weak-password":
+            title = "Weak Password";
+            message = "Password should be at least 6 characters.";
             break;
           case "auth/network-request-failed":
             title = "Network Error";
@@ -791,176 +1227,31 @@ function initCandidateLoginModal() {
             message = "Too many failed attempts. Please wait a moment or reset your password.";
             break;
           default:
-            message = err.message || "An unexpected error occurred during sign in.";
+            message = err.message || "An unexpected error occurred.";
         }
 
-        showStatus("error", title, message);
+        showStatus(statusBox, "error", title, message);
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          if (submitBtnText) submitBtnText.textContent = "Sign In to Dashboard";
+          if (submitBtnText) submitBtnText.textContent = candidateAuthMode === "register" ? "Activate Course & Open Task Portal" : "Sign In & Open Task Portal";
         }
       }
     });
   }
 
-  // Firebase Real-Time Auth State Observer
+  // --- Auth State Observer on Homepage ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // User is authenticated
-      const email = user.email || "candidate@email.com";
-      const namePart = (user.displayName || email.split("@")[0]).replace(/[._0-9-]/g, " ").trim();
-      const formattedName = namePart
-        ? namePart.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
-        : "Candidate";
-      const initials = formattedName.split(" ").map(w => w.charAt(0)).join("").substring(0, 2).toUpperCase() || "CG";
-      const uidSuffix = user.uid ? user.uid.substring(0, 8).toUpperCase() : "2026";
-
-      // Populate Candidate Dashboard UI
-      if (userAvatar) userAvatar.textContent = initials;
-      if (userEmail) userEmail.textContent = email;
-      if (userOffer) userOffer.textContent = `CG-2026-${uidSuffix}`;
-      if (certCandidateName) certCandidateName.textContent = formattedName;
-      if (certIdVal) certIdVal.textContent = `CG-MSME-2026-CERT-${uidSuffix}`;
-
-      // Show Dashboard View
-      if (authView) authView.style.display = "none";
-      if (dashView) dashView.style.display = "block";
-      switchTab("tab-submit-task");
-    } else {
-      // User is logged out
-      if (dashView) dashView.style.display = "none";
-      if (authView) authView.style.display = "block";
-      if (statusBox) statusBox.style.display = "none";
-      const emailInput = document.getElementById("candidate-email");
-      const passInput = document.getElementById("candidate-password");
-      if (passInput) passInput.value = "";
+      // If user is already authenticated and visits homepage, update login buttons label
+      openLoginButtons.forEach(btn => {
+        const textSpan = btn.querySelector("span:not(.icon):not(.btn-arrow)") || btn;
+        if (textSpan && textSpan.textContent.includes("Login")) {
+          textSpan.textContent = "Open Candidate Task Portal 🚀";
+        }
+      });
     }
   });
-
-  // Logout Handler (Firebase SignOut)
-  if (btnLogout) {
-    btnLogout.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-        showToast("Logged out of candidate session.");
-      } catch (err) {
-        showToast("Error logging out.");
-      }
-    });
-  }
-
-  // Task Submission Form Handler
-  if (taskForm) {
-    taskForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const repoUrl = document.getElementById("github-repo-url")?.value.trim() || "";
-      const demoUrl = document.getElementById("live-demo-url")?.value.trim() || "";
-      const taskNotes = document.getElementById("task-notes")?.value.trim() || "";
-
-      if (!repoUrl || !demoUrl || !taskNotes) {
-        showToast("Please provide GitHub link, demo URL, and task notes.");
-        return;
-      }
-
-      if (btnSubmitTask) {
-        btnSubmitTask.disabled = true;
-        btnSubmitTask.innerHTML = `<span>Evaluating Code Architecture & Deliverables... ⏳</span>`;
-      }
-
-      setTimeout(() => {
-        if (btnSubmitTask) {
-          btnSubmitTask.disabled = false;
-          btnSubmitTask.innerHTML = `<span>Task Approved & Re-submitted ✓</span>`;
-        }
-
-        // Update progress to 100%
-        if (progressBar) progressBar.style.width = "100%";
-        if (progressText) {
-          progressText.textContent = "100% Completed • Ready for Certificate";
-          progressText.style.background = "#dcfce7";
-          progressText.style.color = "#15803d";
-        }
-
-        // Update Milestone 3 pill
-        if (milestone3Pill) {
-          milestone3Pill.className = "milestone-step-pill completed";
-          milestone3Pill.innerHTML = `<span class="step-check">✓</span><span>M3: Capstone Approved</span>`;
-        }
-
-        // Update Evaluation card
-        if (evalCardM3) evalCardM3.className = "eval-card eval-passed";
-        if (evalM3Badge) {
-          evalM3Badge.className = "eval-tag-pass";
-          evalM3Badge.textContent = "Score: 99/100 • Approved";
-        }
-        if (evalM3Feedback) {
-          evalM3Feedback.textContent = `"Outstanding production capstone. GitHub repo meets clean architecture guidelines, live deployment active with fast response times. All evaluation criteria fully satisfied."`;
-        }
-
-        if (taskSubmitStatus) {
-          taskSubmitStatus.className = "login-modal-status-box status-success";
-          taskSubmitStatus.style.display = "flex";
-          taskSubmitStatus.innerHTML = `
-            <span class="status-icon">🎉</span>
-            <div>
-              <strong>Milestone 3 Approved! Score: 99/100</strong>
-              <p>Your task deliverables have passed engineering verification. You have completed the program! Your official MSME Verified Certificate has been unlocked.</p>
-            </div>
-          `;
-        }
-
-        showToast("🎉 Final Task Approved! Certificate of Completion unlocked!");
-
-        // Switch to Certificate tab automatically after 1.2s
-        setTimeout(() => {
-          switchTab("tab-certificate");
-        }, 1200);
-      }, 1200);
-    });
-  }
-
-  // Certificate Download & Verification buttons
-  if (btnDownloadCert) {
-    btnDownloadCert.addEventListener("click", () => {
-      showToast("Generating official MSME Verified Certificate PDF... 🎓");
-      setTimeout(() => {
-        window.print();
-      }, 600);
-    });
-  }
-
-  if (btnDownloadLor) {
-    btnDownloadLor.addEventListener("click", () => {
-      showToast("Downloading Official Letter of Recommendation (LOR)... 📄");
-    });
-  }
-
-  if (btnCopyCred) {
-    btnCopyCred.addEventListener("click", () => {
-      const name = certCandidateName?.textContent || "Candidate";
-      const certId = certIdVal?.textContent || "CG-MSME-2026-CERT-8842";
-      const saltedToken = generateSaltedHashToken({
-        name: name,
-        candidateName: name,
-        email: "candidate@coralgenz.co.in",
-        track: "Specialized Engineering Internship",
-        serialNumber: certId,
-        certId: certId,
-        grade: "Grade A+ (Score: 99/100) • Outstanding",
-        duration: "8-12 Weeks • 100% Remote",
-        issueDate: "August 2026",
-        status: "100% Completed • MSME Verified Deliverables",
-        msmeRegNo: "UDYAM-TN-03-0189422"
-      });
-      const url = `https://certifications-coralgenz.vercel.app/?v=${encodeURIComponent(saltedToken)}`;
-      navigator.clipboard.writeText(url).then(() => {
-        showToast("Official Salted Credential Verification Link copied! 🔗");
-      }).catch(() => {
-        showToast(`Verification Link: ${url}`);
-      });
-    });
-  }
 }
 
 // ==========================================

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Candidate Task Portal | Coralgenz Global</title>
+  
+  <meta name="description" content="Official Coralgenz Global candidate task submission portal. Complete your verified internship tasks and claim your Govt. MSME completion credentials.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="coralgenz-logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Security & Anti-Tampering Engine -->
+  <script>
+    (function() {
+      document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; }, { capture: true });
+      document.addEventListener('keydown', function(e) {
+        if (e.keyCode === 123 || 
+            (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.keyCode === 75)) || 
+            (e.metaKey && e.altKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.keyCode === 75)) || 
+            (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83)) || 
+            (e.metaKey && (e.keyCode === 85 || e.keyCode === 83))) {
+          e.preventDefault(); e.stopPropagation(); return false;
+        }
+      }, { capture: true });
+    })();
+  </script>
+</head>
+<body class="task-portal-body">
+
+  <!-- Top In-Domain Portal Bar -->
+  <header class="portal-header-bar" id="portal-header-bar">
+    <div class="portal-header-inner">
+      <!-- Left: Logo & Track Info -->
+      <div class="portal-brand-wrap">
+        <a href="index.html" class="portal-logo-link" title="Return to Homepage">
+          <img src="coralgenz-logo.png" alt="Coralgenz Global" class="portal-logo-img">
+          <div class="portal-logo-text">
+            <span class="portal-brand-title">CORALGENZ GLOBAL</span>
+            <span class="portal-brand-sub">Govt. MSME Official Candidate Portal</span>
+          </div>
+        </a>
+
+        <div class="portal-track-badge-container">
+          <span class="portal-active-track-pill" id="portal-track-pill">
+            <span class="pulse-dot"></span>
+            <span id="portal-track-name">Loading Assigned Course...</span>
+          </span>
+          <span class="portal-security-badge" title="Running securely inside Coralgenz domain">🔒 In-Domain Protected View</span>
+        </div>
+      </div>
+
+      <!-- Right: Candidate Profile & Controls -->
+      <div class="portal-actions-wrap">
+        <div class="portal-candidate-profile" id="portal-candidate-profile">
+          <div class="portal-candidate-avatar" id="portal-user-avatar">CG</div>
+          <div class="portal-candidate-info">
+            <div class="portal-name-row">
+              <span class="portal-candidate-name" id="portal-user-name">Candidate</span>
+              <span class="portal-offer-ref" id="portal-user-offer">Ref: CG-2026-ACTIVE</span>
+            </div>
+            <span class="portal-candidate-email" id="portal-user-email">candidate@email.com</span>
+          </div>
+        </div>
+
+        <div class="portal-button-group">
+          <button type="button" class="btn-portal-action btn-portal-cert" id="btn-open-cert-modal" title="View & Claim Certificate">
+            <span>🎓 Claim Certificate</span>
+          </button>
+          <button type="button" class="btn-portal-action btn-portal-refresh" id="btn-refresh-task-frame" title="Reload Form">
+            <span>🔄 Reload</span>
+          </button>
+          <button type="button" class="btn-portal-action btn-portal-logout" id="btn-portal-logout" title="Sign Out">
+            <span>Sign Out 🚪</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Viewport: In-Domain Course Google Form Frame -->
+  <main class="portal-main-container">
+    <!-- Server Loading State Overlay -->
+    <div class="portal-frame-loading" id="portal-frame-loading">
+      <div class="portal-spinner"></div>
+      <h3 id="loading-heading">Connecting to Firebase Server Database...</h3>
+      <p id="loading-sub">Fetching your authorized course allocation and embedding task submission form in-domain.</p>
+    </div>
+
+    <!-- Sandboxed Embedded Google Form (Running Inside Domain) -->
+    <iframe 
+      id="portal-task-iframe" 
+      class="portal-task-iframe" 
+      src="about:blank"
+      title="Official Course Task Submission Form"
+      loading="eager"
+      allow="camera; microphone; geolocation"
+    ></iframe>
+  </main>
+
+  <!-- Bottom Notification Bar -->
+  <footer class="portal-footer-bar">
+    <div class="portal-footer-inner">
+      <span>🛡️ <strong>Official MSME Evaluation Gateway:</strong> Responses are securely logged directly into the Coralgenz Engineering Registry.</span>
+      <span class="portal-support-text">Need assistance? <a href="mailto:support@coralgenz.co.in">support@coralgenz.co.in</a></span>
+    </div>
+  </footer>
+
+  <!-- Certificate & Evaluation Preview Modal -->
+  <div class="modal-overlay" id="portal-cert-modal" aria-hidden="true">
+    <div class="modal-card cert-preview-modal-card">
+      <button class="modal-close" id="btn-close-cert-modal" aria-label="Close modal">✕</button>
+      
+      <div class="cert-modal-header">
+        <span class="cert-modal-tag">Govt. MSME Official Credentials</span>
+        <h2 class="modal-title-serif">Certificate of Completion & LOR</h2>
+        <p class="cert-modal-sub">Submit your final deliverables in the task form. Once verified by lead engineering mentors, your credentials are authenticated here.</p>
+      </div>
+
+      <!-- Live Certificate Card Preview -->
+      <div class="cert-preview-wrapper" id="cert-print-area">
+        <div class="cert-card-header-row">
+          <div>
+            <span class="cert-org-title">Coralgenz Global</span>
+            <span class="cert-msme-sub">Govt. Registered Enterprise • MSME UDYAM-TN-03-0189422</span>
+          </div>
+          <span class="cert-stamp-verified">✓ AUTHENTIC & VERIFIED</span>
+        </div>
+
+        <div class="cert-body-content">
+          <p class="cert-awarded-text">This is to officially certify that</p>
+          <h3 class="cert-candidate-name-display" id="cert-modal-name">Candidate Name</h3>
+          <p class="cert-completion-desc">has successfully completed the intensive professional internship curriculum with outstanding engineering deliverables in the track:</p>
+          <h4 class="cert-track-title-display" id="cert-modal-track">Full Stack Web Development</h4>
+        </div>
+
+        <div class="cert-meta-grid">
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Certificate Serial ID:</span>
+            <strong class="cert-meta-val" id="cert-modal-id">CG-MSME-2026-CERT-8842</strong>
+          </div>
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Performance Grade:</span>
+            <strong class="cert-meta-val text-gold">Grade A+ (Score: 99/100) • Outstanding</strong>
+          </div>
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Status & Duration:</span>
+            <strong class="cert-meta-val">100% Completed • MSME Verified Deliverables</strong>
+          </div>
+          <div class="cert-meta-item">
+            <span class="cert-meta-label">Issuing Authority:</span>
+            <strong class="cert-meta-val">Coralgenz Global, Coimbatore, Tamil Nadu, India</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="cert-modal-actions">
+        <button type="button" class="btn-cert-download" id="btn-print-cert">
+          <span>📄 Print / Save Certificate (PDF)</span>
+        </button>
+        <button type="button" class="btn-cert-copy-url" id="btn-copy-salted-url">
+          <span>🔗 Copy Salted Verification URL</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- App Script (Firebase Modular ES6) -->
+  <script type="module" src="task-portal.js"></script>
+</body>
+</html>

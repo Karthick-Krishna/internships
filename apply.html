@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>Official Internship Application Gateway | Coralgenz Global</title>
+  
+  <meta name="description" content="Official Coralgenz Global Internship Application Form. Register with ₹0 upfront payment for MSME-verified engineering internships in Web Development, Java, Python, and C.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" type="image/png" href="coralgenz-logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ==========================================
+       MOBILE OPTIMIZED FULL UI APPLICATION VIEW
+       ========================================== */
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body.apply-full-page-body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      background: #f8fafc;
+      font-family: var(--font-sans);
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Compact Executive Top Bar */
+    .apply-top-bar {
+      height: 52px;
+      min-height: 52px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(12px);
+      border-bottom: 1.5px solid #bfdbfe;
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .apply-top-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    .apply-brand-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .apply-brand-logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      border-radius: 7px;
+    }
+
+    .apply-brand-name {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.4px;
+      line-height: 1.1;
+    }
+
+    .apply-brand-tag {
+      font-size: 0.64rem;
+      font-weight: 700;
+      color: #0369a1;
+    }
+
+    .apply-track-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #eff6ff;
+      color: #0284c7;
+      border: 1.5px solid #bae6fd;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 750;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 280px;
+    }
+
+    .apply-msme-chip {
+      font-size: 0.68rem;
+      font-weight: 750;
+      color: #15803d;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      padding: 0.18rem 0.5rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .apply-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .btn-apply-bar-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.34rem 0.65rem;
+      border-radius: 0.55rem;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .btn-apply-back {
+      background: #ffffff;
+      color: #334155;
+      border: 1.5px solid #cbd5e1;
+    }
+
+    .btn-apply-back:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .btn-apply-login {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      color: #0369a1;
+      border: 1.5px solid #93c5fd;
+    }
+
+    .btn-apply-login:hover {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+    }
+
+    /* Full Viewport Embedded Form Container */
+    .apply-full-viewport-main {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 52px - 28px);
+      height: calc(100dvh - 52px - 28px);
+      background: #ffffff;
+      overflow: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .apply-full-iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      border: none;
+      display: block;
+      margin: 0;
+      padding: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Bottom Bar (Desktop Only) */
+    .apply-bottom-bar {
+      height: 28px;
+      min-height: 28px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      font-size: 0.7rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .apply-bottom-bar a {
+      color: #0284c7;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* ==========================================
+       MOBILE BREAKPOINTS (<= 768px & <= 480px)
+       ========================================== */
+    @media (max-width: 768px) {
+      .apply-top-bar {
+        height: 46px;
+        min-height: 46px;
+        padding: 0 0.55rem;
+      }
+
+      .apply-msme-chip {
+        display: none;
+      }
+
+      .apply-bottom-bar {
+        display: none; /* Hide bottom bar on mobile to give 100% full height to Google Form */
+      }
+
+      .apply-full-viewport-main {
+        height: calc(100vh - 46px);
+        height: calc(100dvh - 46px);
+      }
+
+      .apply-track-pill {
+        max-width: 170px;
+        font-size: 0.72rem;
+        padding: 0.15rem 0.45rem;
+      }
+
+      .btn-apply-login {
+        display: none; /* Keep top bar clean on mobile */
+      }
+    }
+
+    @media (max-width: 480px) {
+      .apply-brand-tag {
+        display: none;
+      }
+
+      .apply-brand-name {
+        font-size: 0.88rem;
+      }
+
+      .apply-brand-logo {
+        width: 28px;
+        height: 28px;
+      }
+
+      .btn-apply-bar-action {
+        padding: 0.25rem 0.45rem;
+        font-size: 0.68rem;
+      }
+
+      .apply-track-pill {
+        max-width: 130px;
+        font-size: 0.68rem;
+      }
+    }
+  </style>
+
+  <!-- Security & Anti-Tampering Engine -->
+  <script>
+    (function() {
+      document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; }, { capture: true });
+      document.addEventListener('keydown', function(e) {
+        if (e.keyCode === 123 || 
+            (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.keyCode === 75)) || 
+            (e.metaKey && e.altKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.keyCode === 75)) || 
+            (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83)) || 
+            (e.metaKey && (e.keyCode === 85 || e.keyCode === 83))) {
+          e.preventDefault(); e.stopPropagation(); return false;
+        }
+      }, { capture: true });
+    })();
+  </script>
+</head>
+<body class="apply-full-page-body">
+
+  <!-- Top In-Domain Application Header Bar -->
+  <header class="apply-top-bar" id="portal-header-bar">
+    <div class="apply-top-left">
+      <a href="index.html" class="apply-brand-link" title="Return to Homepage">
+        <img src="coralgenz-logo.png" alt="Coralgenz Global" class="apply-brand-logo">
+        <div style="display: flex; flex-direction: column;">
+          <span class="apply-brand-name">CORALGENZ</span>
+          <span class="apply-brand-tag">Govt. MSME Official Application</span>
+        </div>
+      </a>
+
+      <span class="apply-track-pill" id="apply-active-track-pill">
+        <span class="pulse-dot"></span>
+        <span id="apply-track-title-text">2026 Application</span>
+      </span>
+
+      <span class="apply-msme-chip">🛡️ ₹0 Upfront</span>
+    </div>
+
+    <!-- Right: Action Controls -->
+    <div class="apply-top-actions">
+      <button type="button" class="btn-apply-bar-action btn-apply-back" id="btn-refresh-apply-frame" title="Reload Form">
+        <span>🔄 Reload</span>
+      </button>
+      <a href="index.html" class="btn-apply-bar-action btn-apply-back" title="Return to All Courses">
+        <span>← Back</span>
+      </a>
+      <a href="index.html?login=1" class="btn-apply-bar-action btn-apply-login" title="Candidate Login">
+        <span>Login ↗</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Viewport: 100% Full UI Google Form Frame -->
+  <main class="apply-full-viewport-main">
+    <!-- Server Loading State Overlay -->
+    <div class="portal-frame-loading" id="apply-page-loading">
+      <div class="portal-spinner"></div>
+      <h3>Loading Official Internship Application Gateway...</h3>
+      <p>Securing application portal and loading form directly inside domain.</p>
+    </div>
+
+    <!-- Sandboxed Embedded Google Form (Running 100% Full UI Inside Domain) -->
+    <iframe 
+      id="apply-page-iframe" 
+      class="apply-full-iframe" 
+      src="https://docs.google.com/forms/d/e/1FAIpQLScCFRGE3_ivVEoQyh4962KlxTBpI7-Ix2p95i7zbIZ7WDblMw/viewform?embedded=true"
+      title="Coralgenz Official Internship Application Form"
+      loading="eager"
+      allow="camera; microphone; geolocation"
+    ></iframe>
+  </main>
+
+  <!-- Bottom Notification Bar -->
+  <footer class="apply-bottom-bar">
+    <span>🛡️ <strong>Official MSME Evaluation Gateway:</strong> Free application • Zero upfront payment. Responses logged to official registry.</span>
+    <span>Support: <a href="mailto:support@coralgenz.co.in">support@coralgenz.co.in</a></span>
+  </footer>
+
+  <script>
+    // Parse track from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const trackParam = urlParams.get("track");
+    const trackPillText = document.getElementById("apply-track-title-text");
+
+    if (trackParam && trackPillText) {
+      trackPillText.textContent = `${decodeURIComponent(trackParam)}`;
+    }
+
+    const iframe = document.getElementById("apply-page-iframe");
+    const loading = document.getElementById("apply-page-loading");
+    const btnReload = document.getElementById("btn-refresh-apply-frame");
+
+    if (iframe) {
+      iframe.onload = () => {
+        if (loading) loading.style.display = "none";
+      };
+      setTimeout(() => {
+        if (loading) loading.style.display = "none";
+      }, 1800);
+    }
+
+    if (btnReload && iframe) {
+      btnReload.addEventListener("click", () => {
+        if (loading) loading.style.display = "flex";
+        iframe.src = iframe.src;
+        setTimeout(() => {
+          if (loading) loading.style.display = "none";
+        }, 1800);
+      });
+    }
+  </script>
+</body>
+</html>
