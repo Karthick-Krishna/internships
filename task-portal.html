@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Candidate Task Portal | Coralgenz Global</title>
   
   <meta name="description" content="Official Coralgenz Global candidate task submission portal. Complete your verified internship tasks and claim your Govt. MSME completion credentials.">
@@ -15,6 +15,314 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ==========================================
+       MOBILE OPTIMIZED FULL UI TASK PORTAL
+       ========================================== */
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body.task-portal-body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      background: #f8fafc;
+      font-family: var(--font-sans);
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .portal-header-bar {
+      height: 52px;
+      min-height: 52px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(12px);
+      border-bottom: 1.5px solid #bfdbfe;
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .portal-header-inner {
+      width: 100%;
+      max-width: 1680px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .portal-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    .portal-logo-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .portal-logo-img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      border-radius: 7px;
+    }
+
+    .portal-brand-title {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.4px;
+      line-height: 1.1;
+    }
+
+    .portal-brand-sub {
+      font-size: 0.64rem;
+      font-weight: 700;
+      color: #0369a1;
+    }
+
+    .portal-active-track-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #eff6ff;
+      color: #0284c7;
+      border: 1.5px solid #bae6fd;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 750;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 280px;
+    }
+
+    .portal-security-badge {
+      font-size: 0.68rem;
+      font-weight: 750;
+      color: #15803d;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      padding: 0.18rem 0.5rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .portal-actions-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-shrink: 0;
+    }
+
+    .portal-candidate-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .portal-candidate-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 750;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .portal-candidate-name {
+      font-size: 0.82rem;
+      font-weight: 750;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+
+    .portal-offer-ref {
+      font-size: 0.66rem;
+      color: #64748b;
+      font-family: var(--font-mono);
+      background: #f1f5f9;
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+    }
+
+    .portal-candidate-email {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    .portal-button-group {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .btn-portal-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.34rem 0.65rem;
+      border-radius: 0.55rem;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .btn-portal-refresh {
+      background: #ffffff;
+      color: #334155;
+      border: 1.5px solid #cbd5e1;
+    }
+
+    .btn-portal-refresh:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .btn-portal-logout {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1.5px solid #fecaca;
+    }
+
+    .btn-portal-logout:hover {
+      background: #dc2626;
+      color: #ffffff;
+      border-color: #dc2626;
+    }
+
+    /* Main Viewport & Sandboxed Google Form Frame */
+    .portal-main-container {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 52px - 28px);
+      height: calc(100dvh - 52px - 28px);
+      background: #ffffff;
+      overflow: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .portal-task-iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      border: none;
+      display: block;
+      margin: 0;
+      padding: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Bottom Bar (Desktop Only) */
+    .portal-footer-bar {
+      height: 28px;
+      min-height: 28px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      font-size: 0.7rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .portal-footer-bar a {
+      color: #0284c7;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* ==========================================
+       MOBILE BREAKPOINTS (<= 768px & <= 480px)
+       ========================================== */
+    @media (max-width: 768px) {
+      .portal-header-bar {
+        height: 46px;
+        min-height: 46px;
+        padding: 0 0.55rem;
+      }
+
+      .portal-security-badge,
+      .portal-candidate-profile,
+      .portal-footer-bar {
+        display: none !important; /* Hide to give 100% full height to the Google Form */
+      }
+
+      .portal-main-container {
+        height: calc(100vh - 46px) !important;
+        height: calc(100dvh - 46px) !important;
+      }
+
+      .portal-active-track-pill {
+        max-width: 170px;
+        font-size: 0.72rem;
+        padding: 0.15rem 0.45rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .portal-brand-sub {
+        display: none;
+      }
+
+      .portal-brand-title {
+        font-size: 0.88rem;
+      }
+
+      .portal-logo-img {
+        width: 28px;
+        height: 28px;
+      }
+
+      .btn-portal-action {
+        padding: 0.25rem 0.45rem;
+        font-size: 0.68rem;
+      }
+
+      .portal-active-track-pill {
+        max-width: 130px;
+        font-size: 0.68rem;
+      }
+    }
+  </style>
 
   <!-- Security & Anti-Tampering Engine -->
   <script>
@@ -42,18 +350,17 @@
         <a href="index.html" class="portal-logo-link" title="Return to Homepage">
           <img src="coralgenz-logo.png" alt="Coralgenz Global" class="portal-logo-img">
           <div class="portal-logo-text">
-            <span class="portal-brand-title">CORALGENZ GLOBAL</span>
+            <span class="portal-brand-title">CORALGENZ</span>
             <span class="portal-brand-sub">Govt. MSME Official Candidate Portal</span>
           </div>
         </a>
 
-        <div class="portal-track-badge-container">
-          <span class="portal-active-track-pill" id="portal-track-pill">
-            <span class="pulse-dot"></span>
-            <span id="portal-track-name">Loading Assigned Course...</span>
-          </span>
-          <span class="portal-security-badge" title="Running securely inside Coralgenz domain">🔒 In-Domain Protected View</span>
-        </div>
+        <span class="portal-active-track-pill" id="portal-track-pill">
+          <span class="pulse-dot"></span>
+          <span id="portal-track-name">Loading Course...</span>
+        </span>
+
+        <span class="portal-security-badge" title="Running securely inside Coralgenz domain">🔒 In-Domain</span>
       </div>
 
       <!-- Right: Candidate Profile & Controls -->
@@ -63,16 +370,13 @@
           <div class="portal-candidate-info">
             <div class="portal-name-row">
               <span class="portal-candidate-name" id="portal-user-name">Candidate</span>
-              <span class="portal-offer-ref" id="portal-user-offer">Ref: CG-2026-ACTIVE</span>
+              <span class="portal-offer-ref" id="portal-user-offer">Ref: CG-2026</span>
             </div>
             <span class="portal-candidate-email" id="portal-user-email">candidate@email.com</span>
           </div>
         </div>
 
         <div class="portal-button-group">
-          <button type="button" class="btn-portal-action btn-portal-cert" id="btn-open-cert-modal" title="View & Claim Certificate">
-            <span>🎓 Claim Certificate</span>
-          </button>
           <button type="button" class="btn-portal-action btn-portal-refresh" id="btn-refresh-task-frame" title="Reload Form">
             <span>🔄 Reload</span>
           </button>
@@ -84,7 +388,7 @@
     </div>
   </header>
 
-  <!-- Main Viewport: In-Domain Course Google Form Frame -->
+  <!-- Main Viewport: In-Domain Course Google Form Frame (100% Full UI) -->
   <main class="portal-main-container">
     <!-- Server Loading State Overlay -->
     <div class="portal-frame-loading" id="portal-frame-loading">
@@ -93,7 +397,7 @@
       <p id="loading-sub">Fetching your authorized course allocation and embedding task submission form in-domain.</p>
     </div>
 
-    <!-- Sandboxed Embedded Google Form (Running Inside Domain) -->
+    <!-- Sandboxed Embedded Google Form (Running 100% Full Height Inside Domain) -->
     <iframe 
       id="portal-task-iframe" 
       class="portal-task-iframe" 
@@ -104,73 +408,13 @@
     ></iframe>
   </main>
 
-  <!-- Bottom Notification Bar -->
+  <!-- Bottom Notification Bar (Desktop) -->
   <footer class="portal-footer-bar">
     <div class="portal-footer-inner">
       <span>🛡️ <strong>Official MSME Evaluation Gateway:</strong> Responses are securely logged directly into the Coralgenz Engineering Registry.</span>
       <span class="portal-support-text">Need assistance? <a href="mailto:support@coralgenz.co.in">support@coralgenz.co.in</a></span>
     </div>
   </footer>
-
-  <!-- Certificate & Evaluation Preview Modal -->
-  <div class="modal-overlay" id="portal-cert-modal" aria-hidden="true">
-    <div class="modal-card cert-preview-modal-card">
-      <button class="modal-close" id="btn-close-cert-modal" aria-label="Close modal">✕</button>
-      
-      <div class="cert-modal-header">
-        <span class="cert-modal-tag">Govt. MSME Official Credentials</span>
-        <h2 class="modal-title-serif">Certificate of Completion & LOR</h2>
-        <p class="cert-modal-sub">Submit your final deliverables in the task form. Once verified by lead engineering mentors, your credentials are authenticated here.</p>
-      </div>
-
-      <!-- Live Certificate Card Preview -->
-      <div class="cert-preview-wrapper" id="cert-print-area">
-        <div class="cert-card-header-row">
-          <div>
-            <span class="cert-org-title">Coralgenz Global</span>
-            <span class="cert-msme-sub">Govt. Registered Enterprise • MSME UDYAM-TN-03-0189422</span>
-          </div>
-          <span class="cert-stamp-verified">✓ AUTHENTIC & VERIFIED</span>
-        </div>
-
-        <div class="cert-body-content">
-          <p class="cert-awarded-text">This is to officially certify that</p>
-          <h3 class="cert-candidate-name-display" id="cert-modal-name">Candidate Name</h3>
-          <p class="cert-completion-desc">has successfully completed the intensive professional internship curriculum with outstanding engineering deliverables in the track:</p>
-          <h4 class="cert-track-title-display" id="cert-modal-track">Full Stack Web Development</h4>
-        </div>
-
-        <div class="cert-meta-grid">
-          <div class="cert-meta-item">
-            <span class="cert-meta-label">Certificate Serial ID:</span>
-            <strong class="cert-meta-val" id="cert-modal-id">CG-MSME-2026-CERT-8842</strong>
-          </div>
-          <div class="cert-meta-item">
-            <span class="cert-meta-label">Performance Grade:</span>
-            <strong class="cert-meta-val text-gold">Grade A+ (Score: 99/100) • Outstanding</strong>
-          </div>
-          <div class="cert-meta-item">
-            <span class="cert-meta-label">Status & Duration:</span>
-            <strong class="cert-meta-val">100% Completed • MSME Verified Deliverables</strong>
-          </div>
-          <div class="cert-meta-item">
-            <span class="cert-meta-label">Issuing Authority:</span>
-            <strong class="cert-meta-val">Coralgenz Global, Coimbatore, Tamil Nadu, India</strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="cert-modal-actions">
-        <button type="button" class="btn-cert-download" id="btn-print-cert">
-          <span>📄 Print / Save Certificate (PDF)</span>
-        </button>
-        <button type="button" class="btn-cert-copy-url" id="btn-copy-salted-url">
-          <span>🔗 Copy Salted Verification URL</span>
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Toast Notification -->
   <div class="toast-container" id="toast-container"></div>
