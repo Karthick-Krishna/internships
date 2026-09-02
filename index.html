@@ -1299,53 +1299,19 @@
   <div class="modal-overlay" id="login-modal" aria-hidden="true">
     <div class="modal-card login-modal-card" id="login-modal-card">
       <button class="modal-close" id="login-modal-close" aria-label="Close modal">✕</button>
-      
-      <!-- Modal Navigation Header Switcher (Candidate vs Admin) -->
-      <div class="auth-role-switcher" id="auth-role-switcher">
-        <button type="button" class="role-switch-btn active" id="btn-role-candidate" data-view="candidate">👤 Candidate Portal</button>
-        <button type="button" class="role-switch-btn" id="btn-role-admin" data-view="admin">🛡️ Admin Management</button>
-      </div>
 
-      <!-- VIEW 1: Candidate Authentication (Firebase Auth) -->
+      <!-- Candidate Authentication (Firebase Auth) -->
       <div id="login-view-auth">
         <div class="login-modal-header">
           <div class="login-modal-icon-badge">🔐</div>
           <div>
             <span class="login-modal-badge" id="auth-header-badge">Official Candidate Portal</span>
-            <h2 class="modal-title-serif" id="auth-header-title">Candidate Login & Task Portal</h2>
+            <h2 class="modal-title-serif" id="auth-header-title">Candidate Login</h2>
             <p class="login-modal-sub" id="auth-header-sub">Sign in with your registered email and password to access your assigned course task submission form and MSME Certificate.</p>
           </div>
         </div>
 
-        <!-- Mode switcher inside Candidate Auth (Sign In vs First-Time Activation) -->
-        <div class="candidate-auth-toggle-pill" id="candidate-auth-toggle-pill">
-          <button type="button" class="cand-tab-btn active" id="btn-mode-signin">Sign In</button>
-          <button type="button" class="cand-tab-btn" id="btn-mode-register">Activate Account & Course</button>
-        </div>
-
         <form class="candidate-login-form" id="candidate-login-form">
-          <div class="form-group" id="reg-name-group" style="display: none;">
-            <label for="candidate-name">Candidate Full Name <span class="required">*</span></label>
-            <div class="input-with-icon">
-              <span class="input-icon">👤</span>
-              <input type="text" id="candidate-name" placeholder="e.g. Karthick Krishna">
-            </div>
-          </div>
-
-          <div class="form-group" id="reg-course-group" style="display: none;">
-            <label for="candidate-course-select">Select Course / Track <span class="required">*</span></label>
-            <div class="input-with-icon">
-              <span class="input-icon">🎓</span>
-              <select id="candidate-course-select">
-                <option value="java">☕ Java Developer</option>
-                <option value="python">🐍 Python Developer</option>
-                <option value="c">⚙️ C Programming & Systems</option>
-                <option value="web">🌐 Frontend Web Engineering</option>
-                <option value="fullstack" selected>🚀 Full Stack Web Development</option>
-              </select>
-            </div>
-          </div>
-
           <div class="form-group">
             <label for="candidate-email">Registered Email Address <span class="required">*</span></label>
             <div class="input-with-icon">
@@ -1377,130 +1343,6 @@
         <div class="login-modal-footer-note">
           <span>🔒 Secured with Firebase Authentication & 256-Bit SSL Encryption</span>
           <span class="support-hint">Need assistance? Contact <a href="mailto:support@coralgenz.co.in">support@coralgenz.co.in</a></span>
-        </div>
-      </div>
-
-      <!-- VIEW 1B: Admin Management & Course Access Provisioning (Firebase Firestore) -->
-      <div id="login-view-admin" style="display: none;">
-        <div class="login-modal-header">
-          <div class="login-modal-icon-badge admin-badge">🛡️</div>
-          <div>
-            <span class="login-modal-badge admin-pill">Enterprise Administration</span>
-            <h2 class="modal-title-serif">Candidate Course Access & Provisioning</h2>
-            <p class="login-modal-sub">Authorize candidate email accounts, assign specific internship courses (Java, Python, C, Web Development, Full Stack), and sync to Firebase server.</p>
-          </div>
-        </div>
-
-        <!-- Admin Sub-Navigation Tabs -->
-        <div class="admin-sub-tabs">
-          <button type="button" class="admin-sub-tab active" data-admin-tab="tab-add-candidate">➕ Add Candidate & Assign Course</button>
-          <button type="button" class="admin-sub-tab" data-admin-tab="tab-manage-forms">🔗 Configure Course Forms</button>
-          <button type="button" class="admin-sub-tab" data-admin-tab="tab-candidate-list">📋 Registered Candidates</button>
-        </div>
-
-        <!-- Admin Tab 1: Add Candidate Form -->
-        <div class="admin-tab-pane active" id="admin-tab-add-candidate">
-          <form class="candidate-login-form" id="admin-candidate-form">
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label for="admin-candidate-email">Candidate Email <span class="required">*</span></label>
-                <div class="input-with-icon">
-                  <span class="input-icon">📧</span>
-                  <input type="email" id="admin-candidate-email" placeholder="candidate@gmail.com" required>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="admin-candidate-password">Portal Password <span class="required">*</span></label>
-                <div class="input-with-icon">
-                  <span class="input-icon">🔑</span>
-                  <input type="password" id="admin-candidate-password" placeholder="Min. 6 chars (for Firebase Auth)" required minlength="6">
-                </div>
-              </div>
-            </div>
-
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label for="admin-candidate-name">Candidate Full Name <span class="required">*</span></label>
-                <div class="input-with-icon">
-                  <span class="input-icon">👤</span>
-                  <input type="text" id="admin-candidate-name" placeholder="e.g. Karthick Krishna" required>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="admin-candidate-course">Assign Course / Internship Track <span class="required">*</span></label>
-                <div class="input-with-icon">
-                  <span class="input-icon">🎓</span>
-                  <select id="admin-candidate-course" required>
-                    <option value="java">☕ Java Developer</option>
-                    <option value="python">🐍 Python Developer</option>
-                    <option value="c">⚙️ C Programming & Systems</option>
-                    <option value="web">🌐 Frontend Web Engineering</option>
-                    <option value="fullstack" selected>🚀 Full Stack Web Development</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="admin-candidate-custom-form">Custom Google Form URL (Optional - overrides track default)</label>
-              <div class="input-with-icon">
-                <span class="input-icon">🔗</span>
-                <input type="url" id="admin-candidate-custom-form" placeholder="https://docs.google.com/forms/d/e/.../viewform">
-              </div>
-              <span class="input-helper">Leave empty to automatically use the course's configured task submission form link.</span>
-            </div>
-
-            <div id="admin-action-status" class="login-modal-status-box" style="display: none;"></div>
-
-            <button type="submit" class="btn-modal-submit-login admin-submit-btn" id="btn-admin-submit-candidate">
-              <span id="btn-admin-submit-text">Grant Course Access & Save to Firebase</span>
-              <span>💾</span>
-            </button>
-          </form>
-        </div>
-
-        <!-- Admin Tab 2: Configure Course Google Form URLs -->
-        <div class="admin-tab-pane" id="admin-tab-manage-forms" style="display: none;">
-          <form class="candidate-login-form" id="admin-forms-config-form">
-            <div class="form-group">
-              <label for="form-url-java">☕ Java Developer - Google Form URL</label>
-              <input type="url" id="form-url-java" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
-            </div>
-            <div class="form-group">
-              <label for="form-url-python">🐍 Python Developer - Google Form URL</label>
-              <input type="url" id="form-url-python" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
-            </div>
-            <div class="form-group">
-              <label for="form-url-c">⚙️ C Programming & Systems - Google Form URL</label>
-              <input type="url" id="form-url-c" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
-            </div>
-            <div class="form-group">
-              <label for="form-url-web">🌐 Frontend Web Engineering - Google Form URL</label>
-              <input type="url" id="form-url-web" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
-            </div>
-            <div class="form-group">
-              <label for="form-url-fullstack">🚀 Full Stack Web Development - Google Form URL</label>
-              <input type="url" id="form-url-fullstack" class="admin-input-full" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
-            </div>
-
-            <div id="admin-forms-status" class="login-modal-status-box" style="display: none;"></div>
-
-            <button type="submit" class="btn-modal-submit-login admin-submit-btn" id="btn-admin-save-forms">
-              <span>Save Course Form Links to Firestore</span>
-              <span>⚡</span>
-            </button>
-          </form>
-        </div>
-
-        <!-- Admin Tab 3: Candidate Registry -->
-        <div class="admin-tab-pane" id="admin-tab-candidate-list" style="display: none;">
-          <div class="admin-registry-toolbar">
-            <span>Authorized Candidates (Stored in Firebase Firestore):</span>
-            <button type="button" class="btn-registry-refresh" id="btn-refresh-candidates">🔄 Refresh List</button>
-          </div>
-          <div class="admin-candidates-container" id="admin-candidates-list">
-            <div class="registry-loading-state">Loading candidate records from Firestore...</div>
-          </div>
         </div>
       </div>
 

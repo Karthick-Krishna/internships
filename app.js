@@ -732,34 +732,6 @@ function initCandidateLoginModal() {
   const btnRoleCandidate = document.getElementById("btn-role-candidate");
   const btnRoleAdmin = document.getElementById("btn-role-admin");
 
-  // Views
-  const authView = document.getElementById("login-view-auth");
-  const adminView = document.getElementById("login-view-admin");
-
-  // Candidate Mode Switcher
-  let candidateAuthMode = "signin";
-  const btnModeSignin = document.getElementById("btn-mode-signin");
-  const btnModeRegister = document.getElementById("btn-mode-register");
-  const regNameGroup = document.getElementById("reg-name-group");
-  const regCourseGroup = document.getElementById("reg-course-group");
-
-  // Admin Elements
-  const adminCandidateForm = document.getElementById("admin-candidate-form");
-  const adminActionStatus = document.getElementById("admin-action-status");
-  const btnAdminSubmitCandidate = document.getElementById("btn-admin-submit-candidate");
-  const adminFormsConfigForm = document.getElementById("admin-forms-config-form");
-  const adminFormsStatus = document.getElementById("admin-forms-status");
-  const adminCandidatesList = document.getElementById("admin-candidates-list");
-  const btnRefreshCandidates = document.getElementById("btn-refresh-candidates");
-  const adminSubTabs = document.querySelectorAll(".admin-sub-tab");
-  const adminTabPanes = {
-    "tab-add-candidate": document.getElementById("admin-tab-add-candidate"),
-    "tab-manage-forms": document.getElementById("admin-tab-manage-forms"),
-    "tab-candidate-list": document.getElementById("admin-tab-candidate-list")
-  };
-
-  let cachedTrackForms = null;
-
   if (!loginModal) return;
 
   function showStatus(targetBox, type, title, message) {
@@ -816,310 +788,13 @@ function initCandidateLoginModal() {
     }
   });
 
-  // Auto-open login modal if URL has ?login=1 (e.g. redirected from task-portal when unauthenticated)
+  // Auto-open login modal if URL has ?login=1
   const pageParams = new URLSearchParams(window.location.search);
   if (pageParams.get("login") === "1") {
     openLogin();
   }
 
-  // --- Role Switcher (Candidate Portal vs Admin Management) ---
-  function switchRoleView(role) {
-    if (role === "admin") {
-      if (btnRoleCandidate) btnRoleCandidate.classList.remove("active");
-      if (btnRoleAdmin) btnRoleAdmin.classList.add("active");
-      if (authView) authView.style.display = "none";
-      if (adminView) adminView.style.display = "block";
-      loadAdminTrackForms();
-      loadAdminCandidatesList();
-    } else {
-      if (btnRoleAdmin) btnRoleAdmin.classList.remove("active");
-      if (btnRoleCandidate) btnRoleCandidate.classList.add("active");
-      if (adminView) adminView.style.display = "none";
-      if (authView) authView.style.display = "block";
-    }
-  }
-
-  if (btnRoleCandidate) {
-    btnRoleCandidate.addEventListener("click", () => switchRoleView("candidate"));
-  }
-  if (btnRoleAdmin) {
-    btnRoleAdmin.addEventListener("click", () => switchRoleView("admin"));
-  }
-
-  // --- Admin Sub-Tabs Navigation ---
-  adminSubTabs.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetTab = btn.getAttribute("data-admin-tab");
-      adminSubTabs.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      Object.keys(adminTabPanes).forEach(tabId => {
-        if (adminTabPanes[tabId]) {
-          adminTabPanes[tabId].style.display = tabId === targetTab ? "block" : "none";
-        }
-      });
-
-      if (targetTab === "tab-candidate-list") {
-        loadAdminCandidatesList();
-      } else if (targetTab === "tab-manage-forms") {
-        loadAdminTrackForms();
-      }
-    });
-  });
-
-  // --- Candidate Auth Mode Switcher (Sign In vs Register / Activate) ---
-  function setCandidateAuthMode(mode) {
-    candidateAuthMode = mode;
-    if (mode === "register") {
-      if (btnModeSignin) btnModeSignin.classList.remove("active");
-      if (btnModeRegister) btnModeRegister.classList.add("active");
-      if (regNameGroup) regNameGroup.style.display = "block";
-      if (regCourseGroup) regCourseGroup.style.display = "block";
-      if (submitBtnText) submitBtnText.textContent = "Activate Course & Open Task Portal";
-      const nameInput = document.getElementById("candidate-name");
-      if (nameInput) nameInput.required = true;
-    } else {
-      if (btnModeRegister) btnModeRegister.classList.remove("active");
-      if (btnModeSignin) btnModeSignin.classList.add("active");
-      if (regNameGroup) regNameGroup.style.display = "none";
-      if (regCourseGroup) regCourseGroup.style.display = "none";
-      if (submitBtnText) submitBtnText.textContent = "Sign In & Open Task Portal";
-      const nameInput = document.getElementById("candidate-name");
-      if (nameInput) nameInput.required = false;
-    }
-  }
-
-  if (btnModeSignin) {
-    btnModeSignin.addEventListener("click", () => setCandidateAuthMode("signin"));
-  }
-  if (btnModeRegister) {
-    btnModeRegister.addEventListener("click", () => setCandidateAuthMode("register"));
-  }
-
-  // --- Firestore Track Forms Helpers ---
-  async function fetchTrackFormsConfig() {
-    if (cachedTrackForms) return cachedTrackForms;
-    try {
-      const docRef = doc(db, "course_forms", "track_forms");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        cachedTrackForms = docSnap.data();
-        return cachedTrackForms;
-      }
-    } catch (err) {
-      console.warn("Firestore track forms read error, using defaults:", err);
-    }
-    cachedTrackForms = {
-      java: COURSE_DEFINITIONS.java.formUrl,
-      python: COURSE_DEFINITIONS.python.formUrl,
-      c: COURSE_DEFINITIONS.c.formUrl,
-      web: COURSE_DEFINITIONS.web.formUrl,
-      fullstack: COURSE_DEFINITIONS.fullstack.formUrl
-    };
-    return cachedTrackForms;
-  }
-
-  async function loadAdminTrackForms() {
-    const forms = await fetchTrackFormsConfig();
-    const javaInput = document.getElementById("form-url-java");
-    const pythonInput = document.getElementById("form-url-python");
-    const cInput = document.getElementById("form-url-c");
-    const webInput = document.getElementById("form-url-web");
-    const fullstackInput = document.getElementById("form-url-fullstack");
-
-    if (javaInput) javaInput.value = forms.java || COURSE_DEFINITIONS.java.formUrl;
-    if (pythonInput) pythonInput.value = forms.python || COURSE_DEFINITIONS.python.formUrl;
-    if (cInput) cInput.value = forms.c || COURSE_DEFINITIONS.c.formUrl;
-    if (webInput) webInput.value = forms.web || COURSE_DEFINITIONS.web.formUrl;
-    if (fullstackInput) fullstackInput.value = forms.fullstack || COURSE_DEFINITIONS.fullstack.formUrl;
-  }
-
-  // --- Admin Action: Save Course Google Form Links ---
-  if (adminFormsConfigForm) {
-    adminFormsConfigForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const javaUrl = document.getElementById("form-url-java")?.value.trim() || "";
-      const pythonUrl = document.getElementById("form-url-python")?.value.trim() || "";
-      const cUrl = document.getElementById("form-url-c")?.value.trim() || "";
-      const webUrl = document.getElementById("form-url-web")?.value.trim() || "";
-      const fullstackUrl = document.getElementById("form-url-fullstack")?.value.trim() || "";
-
-      try {
-        const payload = {
-          java: javaUrl,
-          python: pythonUrl,
-          c: cUrl,
-          web: webUrl,
-          fullstack: fullstackUrl,
-          updatedAt: new Date().toISOString()
-        };
-
-        // 1. Save to primary track_forms document
-        await setDoc(doc(db, "course_forms", "track_forms"), payload, { merge: true });
-        
-        // 2. Save to secondary settings document
-        try {
-          await setDoc(doc(db, "settings", "course_forms"), payload, { merge: true });
-        } catch (e) {}
-
-        // 3. Save individual course documents
-        try {
-          await setDoc(doc(db, "courses", "java"), { formUrl: javaUrl, title: "Java Developer" }, { merge: true });
-          await setDoc(doc(db, "courses", "python"), { formUrl: pythonUrl, title: "Python Developer" }, { merge: true });
-          await setDoc(doc(db, "courses", "c"), { formUrl: cUrl, title: "C Programming & Systems" }, { merge: true });
-          await setDoc(doc(db, "courses", "web"), { formUrl: webUrl, title: "Frontend Web Engineering" }, { merge: true });
-          await setDoc(doc(db, "courses", "fullstack"), { formUrl: fullstackUrl, title: "Full Stack Web Development" }, { merge: true });
-        } catch (e) {}
-
-        // 4. Save to local storage cache
-        try {
-          localStorage.setItem("coralgenz_track_forms", JSON.stringify(payload));
-        } catch (e) {}
-
-        cachedTrackForms = payload;
-        showStatus(adminFormsStatus, "success", "Saved to Server Database!", "All 5 course Google Form links are successfully synced to Firebase Firestore.");
-        showToast("Course form links saved to Firebase! 💾");
-      } catch (err) {
-        showStatus(adminFormsStatus, "error", "Save Failed", err.message || "Could not save to Firebase Firestore.");
-      }
-    });
-  }
-
-  // --- Admin Action: Add Candidate & Assign Course ---
-  if (adminCandidateForm) {
-    adminCandidateForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = (document.getElementById("admin-candidate-email")?.value || "").trim().toLowerCase();
-      const password = document.getElementById("admin-candidate-password")?.value || "";
-      const name = (document.getElementById("admin-candidate-name")?.value || "").trim();
-      const course = document.getElementById("admin-candidate-course")?.value || "fullstack";
-      const customForm = (document.getElementById("admin-candidate-custom-form")?.value || "").trim();
-
-      if (!email || !password || !name) {
-        showStatus(adminActionStatus, "error", "Missing Information", "Please enter email, password, and candidate name.");
-        return;
-      }
-
-      if (btnAdminSubmitCandidate) {
-        btnAdminSubmitCandidate.disabled = true;
-        btnAdminSubmitCandidate.innerHTML = `<span>Saving to Firebase Server... ⏳</span>`;
-      }
-
-      const courseInfo = COURSE_DEFINITIONS[course] || COURSE_DEFINITIONS.fullstack;
-      const offerId = `CG-2026-${courseInfo.code}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-      try {
-        // 1. Create or verify account in Firebase Auth
-        try {
-          await createUserWithEmailAndPassword(auth, email, password);
-        } catch (authErr) {
-          if (authErr.code !== "auth/email-already-in-use") {
-            console.warn("Auth creation note:", authErr.message);
-          }
-        }
-
-        // 2. Save candidate record in Firestore collection 'candidates'
-        const candidateRef = doc(db, "candidates", email);
-        const candidatePayload = {
-          email: email,
-          name: name,
-          course: course,
-          track: course,
-          courseTitle: courseInfo.title,
-          offerId: offerId,
-          status: "approved",
-          customFormUrl: customForm,
-          formUrl: customForm,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-
-        await setDoc(candidateRef, candidatePayload, { merge: true });
-
-        showStatus(
-          adminActionStatus,
-          "success",
-          "Access Granted & Saved to Firebase! 🎉",
-          `<strong>${email}</strong> provisioned for <strong>${courseInfo.badge}</strong>.<br>Offer Ref: <code>${offerId}</code>. The candidate can now log in to access their in-domain task portal.`
-        );
-
-        showToast(`Candidate ${name} assigned to ${courseInfo.title}! 🚀`);
-        adminCandidateForm.reset();
-        loadAdminCandidatesList();
-      } catch (err) {
-        showStatus(adminActionStatus, "error", "Provisioning Error", err.message || "Failed to save candidate to Firestore.");
-      } finally {
-        if (btnAdminSubmitCandidate) {
-          btnAdminSubmitCandidate.disabled = false;
-          btnAdminSubmitCandidate.innerHTML = `<span>Grant Course Access & Save to Firebase</span><span>💾</span>`;
-        }
-      }
-    });
-  }
-
-  // --- Admin Action: Load Candidate Registry from Firestore ---
-  async function loadAdminCandidatesList() {
-    if (!adminCandidatesList) return;
-    adminCandidatesList.innerHTML = `<div class="registry-loading-state">Fetching candidate records from Firebase Firestore... ⏳</div>`;
-
-    try {
-      const candidatesRef = collection(db, "candidates");
-      const querySnap = await getDocs(candidatesRef);
-
-      if (querySnap.empty) {
-        adminCandidatesList.innerHTML = `
-          <div class="registry-empty-state" style="padding: 1rem; text-align: center; color: #64748b; font-size: 0.82rem;">
-            No candidates registered in Firestore yet. Use the <strong>Add Candidate</strong> tab to grant course access.
-          </div>
-        `;
-        return;
-      }
-
-      let html = "";
-      querySnap.forEach(docSnap => {
-        const data = docSnap.data();
-        const courseInfo = COURSE_DEFINITIONS[data.course] || COURSE_DEFINITIONS.fullstack;
-        html += `
-          <div class="admin-candidate-item">
-            <div class="admin-cand-info">
-              <span class="admin-cand-email">${data.name || "Candidate"} (${data.email})</span>
-              <div class="admin-cand-meta">
-                <span class="admin-cand-course-badge">${courseInfo.badge}</span>
-                <span>• Ref: <code>${data.offerId || "CG-2026"}</code></span>
-              </div>
-            </div>
-            <button type="button" class="btn-text-link fill-cand-login-btn" data-email="${data.email}" style="color: #0284c7; font-weight: 700; font-size: 0.76rem;">
-              Fill Login ↗
-            </button>
-          </div>
-        `;
-      });
-
-      adminCandidatesList.innerHTML = html;
-
-      adminCandidatesList.querySelectorAll(".fill-cand-login-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const email = btn.getAttribute("data-email");
-          const candidateEmailInput = document.getElementById("candidate-email");
-          if (candidateEmailInput) candidateEmailInput.value = email;
-          switchRoleView("candidate");
-          showToast(`Filled ${email} in Candidate Login.`);
-        });
-      });
-    } catch (err) {
-      adminCandidatesList.innerHTML = `
-        <div class="registry-error-state" style="padding: 0.85rem; color: #b91c1c; font-size: 0.82rem;">
-          Could not load candidates from Firestore: ${err.message}
-        </div>
-      `;
-    }
-  }
-
-  if (btnRefreshCandidates) {
-    btnRefreshCandidates.addEventListener("click", loadAdminCandidatesList);
-  }
-
-  // --- Forgot password handler ---
+  // --- Forgot Password Handler ---
   if (btnForgotPassword) {
     btnForgotPassword.addEventListener("click", async () => {
       const email = (document.getElementById("candidate-email")?.value || "").trim().toLowerCase();
@@ -1141,22 +816,15 @@ function initCandidateLoginModal() {
     });
   }
 
-  // --- Candidate Login & Registration Form Submit Handler ---
+  // --- Candidate Login Form Submit Handler ---
   if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = (document.getElementById("candidate-email")?.value || "").trim().toLowerCase();
       const password = document.getElementById("candidate-password")?.value || "";
-      const name = (document.getElementById("candidate-name")?.value || "").trim();
-      const course = document.getElementById("candidate-course-select")?.value || "fullstack";
 
       if (!email || !password) {
-        showStatus(statusBox, "error", "Missing Fields", "Please enter both your email address and password.");
-        return;
-      }
-
-      if (candidateAuthMode === "register" && !name) {
-        showStatus(statusBox, "error", "Name Required", "Please enter your full name to activate your candidate account.");
+        showStatus(statusBox, "error", "Missing Fields", "Please enter both your registered email address and password.");
         return;
       }
 
@@ -1166,49 +834,23 @@ function initCandidateLoginModal() {
       }
 
       try {
-        if (candidateAuthMode === "register") {
-          const courseInfo = COURSE_DEFINITIONS[course] || COURSE_DEFINITIONS.fullstack;
-          const offerId = `CG-2026-${courseInfo.code}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-          await createUserWithEmailAndPassword(auth, email, password);
-
-          const candidateRef = doc(db, "candidates", email);
-          await setDoc(candidateRef, {
-            email: email,
-            name: name,
-            course: course,
-            courseTitle: courseInfo.title,
-            offerId: offerId,
-            status: "approved",
-            customFormUrl: "",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }, { merge: true });
-
-          showToast(`Account activated for ${courseInfo.title}! Navigating to Task Portal... 🚀`);
-        } else {
-          await signInWithEmailAndPassword(auth, email, password);
-          showToast(`Welcome back, ${email}! Loading Task Portal... 🚀`);
-        }
+        await signInWithEmailAndPassword(auth, email, password);
+        showToast(`Welcome back! Loading your Task Portal... 🚀`);
 
         // Navigate directly to the in-domain task portal page
         setTimeout(() => {
           window.location.href = "task-portal.html";
-        }, 500);
+        }, 400);
       } catch (err) {
-        let title = candidateAuthMode === "register" ? "Activation Failed" : "Sign In Failed";
+        let title = "Sign In Failed";
         let message = err.message;
 
         switch (err.code) {
-          case "auth/email-already-in-use":
-            title = "Account Already Exists";
-            message = "An account already exists with this email address. Please switch to <strong>Sign In</strong>.";
-            break;
           case "auth/invalid-credential":
           case "auth/user-not-found":
           case "auth/wrong-password":
             title = "Invalid Credentials";
-            message = "Incorrect email or password. If you haven't activated your account yet, click <strong>Activate Account & Course</strong>.";
+            message = "Incorrect email or password. Please verify your credentials or use <strong>Forgot password?</strong>.";
             break;
           case "auth/invalid-email":
             title = "Invalid Email";
@@ -1227,14 +869,14 @@ function initCandidateLoginModal() {
             message = "Too many failed attempts. Please wait a moment or reset your password.";
             break;
           default:
-            message = err.message || "An unexpected error occurred.";
+            message = err.message || "An unexpected authentication error occurred.";
         }
 
         showStatus(statusBox, "error", title, message);
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          if (submitBtnText) submitBtnText.textContent = candidateAuthMode === "register" ? "Activate Course & Open Task Portal" : "Sign In & Open Task Portal";
+          if (submitBtnText) submitBtnText.textContent = "Sign In to Dashboard";
         }
       }
     });
