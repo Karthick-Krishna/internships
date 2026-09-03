@@ -484,27 +484,82 @@ if (document.readyState === "loading") {
   initComingSoonToggle();
 }
 
-// Track Filter Buttons (if present)
-const filterButtons = document.querySelectorAll(".filter-btn");
+// Track Filter Buttons & Mobile Filter Chips
+const filterButtons = document.querySelectorAll(".filter-btn, .filter-chip");
 const trackCards = document.querySelectorAll(".track-card");
 
 filterButtons.forEach(btn => {
   btn.addEventListener("click", () => {
-    filterButtons.forEach(b => b.classList.remove("active"));
+    filterButtons.forEach(b => {
+      b.classList.remove("active");
+      b.setAttribute("aria-selected", "false");
+    });
     btn.classList.add("active");
+    btn.setAttribute("aria-selected", "true");
 
     const filter = btn.getAttribute("data-filter");
 
     trackCards.forEach(card => {
       const category = card.getAttribute("data-category");
       if (filter === "all" || category === filter) {
+        card.style.display = "flex";
         card.classList.remove("hidden");
+        card.style.opacity = "0";
+        card.style.transform = "translateY(12px) scale(0.98)";
+        requestAnimationFrame(() => {
+          card.style.transition = "opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)";
+          card.style.opacity = "1";
+          card.style.transform = "translateY(0) scale(1)";
+        });
       } else {
+        card.style.display = "none";
         card.classList.add("hidden");
       }
     });
   });
 });
+
+// ==========================================
+// SCROLL PROGRESS & SCROLL-REVEAL OBSERVER
+// ==========================================
+(function initScrollAndReveal() {
+  const progressBar = document.getElementById("scroll-progress-bar");
+  
+  function updateScrollProgress() {
+    if (!progressBar) return;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+  }
+
+  window.addEventListener("scroll", updateScrollProgress, { passive: true });
+  updateScrollProgress();
+
+  // Scroll entrance animation using IntersectionObserver
+  if ("IntersectionObserver" in window) {
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("revealed");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.08,
+      rootMargin: "0px 0px -30px 0px"
+    });
+
+    document.querySelectorAll(".reveal-on-scroll, .section, .track-card, .perk-card, .timeline-step, .testimonial-card, .faq-item").forEach(el => {
+      if (!el.classList.contains("reveal-on-scroll")) {
+        el.classList.add("reveal-on-scroll");
+      }
+      revealObserver.observe(el);
+    });
+  } else {
+    document.querySelectorAll(".reveal-on-scroll").forEach(el => el.classList.add("revealed"));
+  }
+})();
 
 // View Details Buttons
 const viewDetailButtons = document.querySelectorAll(".view-details-btn");
@@ -752,12 +807,16 @@ function initCandidateLoginModal() {
     loginModal.classList.add("active");
     loginModal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    const bottomBar = document.getElementById("mobile-bottom-bar");
+    if (bottomBar) bottomBar.style.display = "none";
   }
 
   function closeLogin() {
     loginModal.classList.remove("active");
     loginModal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "auto";
+    const bottomBar = document.getElementById("mobile-bottom-bar");
+    if (bottomBar) bottomBar.style.removeProperty("display");
   }
 
   openLoginButtons.forEach(btn => {

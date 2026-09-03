@@ -6601,4 +6601,353 @@ input, textarea, select, [contenteditable="true"] {
   }
 }
 
+/* ==========================================
+   MODERN UI ANIMATIONS & MOBILE-FIRST ENHANCEMENTS
+   ========================================== */
+
+/* 1. Dynamic Scroll Progress Bar */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3.5px;
+  width: 0%;
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 35%, #6366f1 70%, #10b981 100%);
+  z-index: 10001;
+  transition: width 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.8), 0 0 4px rgba(99, 102, 241, 0.6);
+  pointer-events: none;
+}
+
+/* 2. Ambient Floating Background Mesh */
+.ambient-glow-mesh {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.ambient-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.35) 0%, rgba(56, 189, 248, 0) 70%);
+  top: -80px;
+  left: -80px;
+  animation: ambientFloat1 18s ease-in-out infinite alternate;
+}
+
+.blob-2 {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(168, 85, 247, 0) 70%);
+  bottom: 8%;
+  right: -90px;
+  animation: ambientFloat2 22s ease-in-out infinite alternate;
+}
+
+.blob-3 {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(56, 189, 248, 0) 70%);
+  top: 48%;
+  left: 35%;
+  animation: ambientFloat3 26s ease-in-out infinite alternate;
+}
+
+@keyframes ambientFloat1 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(50px, 40px) scale(1.12); }
+}
+
+@keyframes ambientFloat2 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-45px, -35px) scale(1.15); }
+}
+
+@keyframes ambientFloat3 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(35px, -45px) scale(1.08); }
+}
+
+/* 3. Interactive Category Filter Chips */
+.track-filter-container {
+  margin: 1.25rem 0 1.5rem 0;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+}
+
+.track-filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.4rem 0.25rem;
+  max-width: 100%;
+}
+
+.track-filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.48rem 1.05rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 750;
+  color: #334155;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid #cbd5e1;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.filter-chip:hover {
+  color: #0284c7;
+  border-color: #7dd3fc;
+  background: #f0f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+
+.filter-chip.active {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
+  transform: scale(1.04);
+}
+
+.filter-chip:active {
+  transform: scale(0.96);
+}
+
+/* 4. Scroll-Driven Entrance Animations */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 5. Modernized Track Cards */
+.track-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(2, 132, 199, 0.14);
+  box-shadow: 0 4px 20px -2px rgba(2, 132, 199, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.track-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(2, 132, 199, 0.35);
+  box-shadow: 0 16px 36px -4px rgba(2, 132, 199, 0.18), 0 0 0 1.5px rgba(2, 132, 199, 0.35);
+}
+
+.track-card:active {
+  transform: scale(0.985);
+}
+
+/* 6. High-Conversion Button Shimmer Effect */
+.pill-btn-group,
+.btn-highlight-login,
+.btn-modal-submit-login {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pill-btn-group:hover,
+.btn-highlight-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.32);
+}
+
+.pill-btn-group:active,
+.btn-highlight-login:active {
+  transform: scale(0.97);
+}
+
+/* 7. App-Style Sticky Mobile Bottom Action Bar */
+.mobile-bottom-action-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body.coralgenz-theme {
+    padding-bottom: 74px !important;
+  }
+
+  .mobile-bottom-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1.5px solid rgba(2, 132, 199, 0.2);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    padding: 0.6rem 0.85rem;
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
+    z-index: 998;
+    animation: slideUpBottomBar 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUpBottomBar {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .mobile-bar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 44px;
+    border-radius: 0.75rem;
+    font-weight: 750;
+    font-size: 0.82rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-bar-login {
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1.5px solid #cbd5e1;
+    flex: 0.9;
+  }
+
+  .btn-bar-login:active {
+    transform: scale(0.96);
+    background: #e2e8f0;
+  }
+
+  .btn-bar-apply {
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    color: #ffffff;
+    border: 1.5px solid #0284c7;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.38);
+    flex: 1.25;
+  }
+
+  .btn-bar-apply:active {
+    transform: scale(0.96);
+  }
+
+  .pulse-ring {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+    pointer-events: none;
+    animation: pulseRingAnim 2.4s infinite;
+  }
+
+  @keyframes pulseRingAnim {
+    0% { transform: scale(0.92); opacity: 0.9; }
+    50% { transform: scale(1.2); opacity: 0.3; }
+    100% { transform: scale(0.92); opacity: 0.9; }
+  }
+
+  /* Compact Mobile Card Footers */
+  .track-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .track-card-footer .view-details-btn {
+    flex: 1;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  .track-card-footer .pill-btn-group {
+    flex: 1.2;
+    height: 40px;
+  }
+
+  .track-card-footer .pill-btn-main {
+    font-size: 0.82rem;
+    height: 100%;
+  }
+
+  /* Compact Section Headers & Mobile Padding */
+  .section {
+    padding-top: 2.25rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  .tracks-section {
+    padding-top: 1rem !important;
+    padding-bottom: 2.25rem !important;
+  }
+
+  .hero-tracks-header {
+    margin: 0.15rem auto 1rem auto;
+  }
+
+  .hero-main-headline {
+    font-size: clamp(1.6rem, 5.5vw, 2.2rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  .section-title-serif {
+    font-size: clamp(1.5rem, 5vw, 2rem) !important;
+  }
+}
+
+
 

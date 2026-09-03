@@ -102,9 +102,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=2026.8">
+  <link rel="stylesheet" href="style.css?v=2026.9">
 </head>
 <body class="coralgenz-theme">
+
+  <!-- Dynamic Scroll Progress Indicator -->
+  <div class="scroll-progress-bar" id="scroll-progress-bar"></div>
+
+  <!-- Ambient Floating Glow Background Elements -->
+  <div class="ambient-glow-mesh" aria-hidden="true">
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+    <div class="ambient-blob blob-3"></div>
+  </div>
 
   <!-- Navigation Bar -->
   <header class="navbar" id="navbar">
@@ -160,10 +170,8 @@
     </div>
   </header>
 
-
-
   <!-- Internship Tracks Section -->
-  <section class="section tracks-section" id="tracks">
+  <section class="section tracks-section reveal-on-scroll" id="tracks">
     <div class="container">
 
       <!-- Hero Headline & Announcement -->
@@ -205,6 +213,27 @@
           <span>Got an offer letter? Login & Submit Tasks</span>
           <span class="btn-arrow-mini">↗</span>
         </button>
+      </div>
+
+      <!-- Track Filter Chips (Mobile-First Interactive Switcher) -->
+      <div class="track-filter-container">
+        <div class="track-filter-chips" id="track-filter-chips" role="tablist" aria-label="Course Category Filters">
+          <button class="filter-chip active" data-filter="all" role="tab" aria-selected="true">
+            <span class="chip-text">🔥 All Tracks (5)</span>
+          </button>
+          <button class="filter-chip" data-filter="web" role="tab" aria-selected="false">
+            <span class="chip-text">🌐 Web & Full Stack</span>
+          </button>
+          <button class="filter-chip" data-filter="java" role="tab" aria-selected="false">
+            <span class="chip-text">☕ Java Systems</span>
+          </button>
+          <button class="filter-chip" data-filter="python" role="tab" aria-selected="false">
+            <span class="chip-text">🐍 Python & AI</span>
+          </button>
+          <button class="filter-chip" data-filter="c" role="tab" aria-selected="false">
+            <span class="chip-text">⚙️ C Programming</span>
+          </button>
+        </div>
       </div>
 
       <!-- Tracks Grid -->
@@ -854,7 +883,7 @@
         <div class="testimonial-card">
           <div class="testimonial-rating">★★★★★</div>
           <p class="testimonial-quote">
-            "Working with Python, FastAPI, and PostgreSQL on real company applications gave me the exact hands-on skill set that helped me ace my campus placements!"
+            "Working with Python, FastAPI, and enterprise database systems on real company modules gave me the exact hands-on skill set that helped me ace my campus placements!"
           </p>
           <div class="testimonial-user">
             <div class="user-avatar orange-border">PS</div>
@@ -868,7 +897,7 @@
         <div class="testimonial-card">
           <div class="testimonial-rating">★★★★★</div>
           <p class="testimonial-quote">
-            "The Full Stack track at Coralgenz was phenomenal. Building complete React frontends with Node.js and PostgreSQL backends gave me real-world code for my GitHub. The MSME verified certificate boosted my profile significantly!"
+            "The Full Stack track at Coralgenz was phenomenal. Building complete modern web architectures with scalable cloud backends gave me real-world code for my GitHub. The MSME verified certificate boosted my profile significantly!"
           </p>
           <div class="testimonial-user">
             <div class="user-avatar purple-border">KV</div>
@@ -1446,10 +1475,23 @@
     </div>
   </div>
 
+  <!-- Fixed Mobile Bottom Action Bar (App-Style Experience) -->
+  <aside class="mobile-bottom-action-bar" id="mobile-bottom-bar" aria-label="Quick Actions">
+    <button class="mobile-bar-btn btn-bar-login open-login-modal-btn" aria-label="Login to portal">
+      <span class="bar-icon">👤</span>
+      <span class="bar-text">Candidate Login</span>
+    </button>
+    <button class="mobile-bar-btn btn-bar-apply apply-trigger" data-track-title="Official 2026 Internship" aria-label="Apply with zero upfront payment">
+      <span class="bar-icon">🚀</span>
+      <span class="bar-text">Apply Now • ₹0 Upfront</span>
+      <span class="pulse-ring"></span>
+    </button>
+  </aside>
+
   <!-- Toast Notification for Form Redirection -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Main JavaScript File (Firebase Module) -->
-  <script type="module" src="app.js?v=2026.8"></script>
+  <script type="module" src="app.js?v=2026.9"></script>
 </body>
 </html>
