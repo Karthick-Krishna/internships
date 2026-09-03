@@ -520,22 +520,9 @@ filterButtons.forEach(btn => {
 });
 
 // ==========================================
-// SCROLL PROGRESS & SCROLL-REVEAL OBSERVER
+// SCROLL-REVEAL ENTRANCE OBSERVER
 // ==========================================
-(function initScrollAndReveal() {
-  const progressBar = document.getElementById("scroll-progress-bar");
-  
-  function updateScrollProgress() {
-    if (!progressBar) return;
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-    progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
-  }
-
-  window.addEventListener("scroll", updateScrollProgress, { passive: true });
-  updateScrollProgress();
-
+(function initScrollReveal() {
   // Scroll entrance animation using IntersectionObserver
   if ("IntersectionObserver" in window) {
     const revealObserver = new IntersectionObserver((entries, observer) => {

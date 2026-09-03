@@ -6605,21 +6605,7 @@ input, textarea, select, [contenteditable="true"] {
    MODERN UI ANIMATIONS & MOBILE-FIRST ENHANCEMENTS
    ========================================== */
 
-/* 1. Dynamic Scroll Progress Bar */
-.scroll-progress-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 3.5px;
-  width: 0%;
-  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 35%, #6366f1 70%, #10b981 100%);
-  z-index: 10001;
-  transition: width 0.12s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.8), 0 0 4px rgba(99, 102, 241, 0.6);
-  pointer-events: none;
-}
-
-/* 2. Ambient Floating Background Mesh */
+/* 1. Ambient Floating Background Mesh */
 .ambient-glow-mesh {
   position: fixed;
   top: 0;
